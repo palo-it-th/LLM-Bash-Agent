@@ -13,7 +13,7 @@ const BashScriptGenerator = () => {
   const [dependencies, setDependencies] = useState<
     { name: string; installed: boolean }[]
   >([]);
-  const [installLog, setInstallLog] = useState("");
+  const [openAILog, setOpenAILog] = useState("");
   const [tempPrompt, setTempPrompt] = useState("");
   const [nextPrompt, setNextPrompt] = useState("");
 
@@ -72,7 +72,7 @@ const BashScriptGenerator = () => {
       const data = await response.json();
       // setOutput(data.output);
       setTempPrompt(`${openaiQuery}${data.output}`);
-      setInstallLog(data.output);
+      setOpenAILog(data.output);
       const bashScript = extractBashScript(data.output);
       setBashScript(bashScript);
     } catch (error: any) {
@@ -100,33 +100,11 @@ const BashScriptGenerator = () => {
       );
     }
   };
-
-  const installDependency = async (depName: string) => {
-    setInstallLog((prev) => `${prev}Installing ${depName}...\n`);
-    // Simulate installation process
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setInstallLog((prev) => `${prev}${depName} installed successfully.\n`);
-    setDependencies((deps) =>
-      deps.map((dep) =>
-        dep.name === depName ? { ...dep, installed: true } : dep
-      )
-    );
-  };
-
-  const installAllDependencies = async () => {
-    for (const dep of dependencies) {
-      if (!dep.installed) {
-        await installDependency(dep.name);
-      }
-    }
-    setInstallLog((prev) => `${prev}All dependencies installed.\n`);
-  };
-
   return (
     <div className="w-full max-w-2xl mx-auto p-4 space-y-4">
       <Card className="p-4">
         <h2 className="text-2xl font-bold mb-4">Bash Script Generator</h2>
-        <Input
+        <Textarea
           placeholder="Enter your query here"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -138,11 +116,17 @@ const BashScriptGenerator = () => {
       </Card>
       <Card className="p-4">
         <h3 className="text-xl font-semibold mb-2">Next Prompt Log</h3>
-        <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap text-sm">
+        <Textarea
+          value={nextPrompt}
+          onChange={(e) => setNextPrompt(e.target.value)}
+          rows={10}
+          className="font-mono text-sm mb-2"
+        />
+        {/* <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap text-sm">
           {nextPrompt}
-        </pre>
+        </pre> */}
         <Button onClick={generateBashScript} className="w-full">
-          Generate Next Prompt
+          Run Next Prompt
         </Button>
       </Card>
       <Card className="p-4">
@@ -180,9 +164,9 @@ const BashScriptGenerator = () => {
       </Card> */}
 
       <Card className="p-4">
-        <h3 className="text-xl font-semibold mb-2">Installation Log</h3>
+        <h3 className="text-xl font-semibold mb-2">OpenAI Log</h3>
         <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap text-sm">
-          {installLog}
+          {openAILog}
         </pre>
       </Card>
       <Card className="p-4">
