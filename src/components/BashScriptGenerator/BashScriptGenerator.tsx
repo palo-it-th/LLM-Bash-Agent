@@ -5,14 +5,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Check } from "lucide-react";
+import InstructionText from "./InstructionText";
 
 const BashScriptGenerator = () => {
   const [query, setQuery] = useState("");
   const [bashScript, setBashScript] = useState("");
   const [output, setOutput] = useState("");
-  const [dependencies, setDependencies] = useState<
-    { name: string; installed: boolean }[]
-  >([]);
+  const [bashLog, setBashLog] = useState("");
   const [openAILog, setOpenAILog] = useState("");
   const [tempPrompt, setTempPrompt] = useState("");
   const [nextPrompt, setNextPrompt] = useState("");
@@ -39,16 +38,7 @@ const BashScriptGenerator = () => {
   }, [query, tempPrompt]);
 
   const generateBashScript = () => {
-    // Placeholder for your implementation
-    // const generatedScript = `#!/bin/bash\n# Generated from query: ${query}\n\n# Your implementation here\necho "Hello, world!"`;
-    // setBashScript(generatedScript);
     runOpenAI();
-    // Placeholder for dependency detection
-    // setDependencies([
-    //   { name: "curl", installed: false },
-    //   { name: "jq", installed: false },
-    //   { name: "git", installed: true },
-    // ]);
   };
 
   const runOpenAI = async () => {
@@ -70,11 +60,13 @@ const BashScriptGenerator = () => {
         body: JSON.stringify({ query: openaiQuery }),
       });
       const data = await response.json();
-      // setOutput(data.output);
+
       setTempPrompt(`${openaiQuery}${data.output}`);
       setOpenAILog(data.output);
       const bashScript = extractBashScript(data.output);
       setBashScript(bashScript);
+      // TODO: Uncomment to Auto run bash script
+      // runBashScript()
     } catch (error: any) {
       setOutput("Error openai: " + error.message);
     }
@@ -89,9 +81,12 @@ const BashScriptGenerator = () => {
       });
       const data = await response.json();
       console.log({ data });
-      setOutput(data.output);
+      setBashLog((prev) => `${prev}${bashScript}\n`);
+      setOutput((prev) => `${prev}${data.output}\n`);
       let observation = data.output.length > 0 ? data.output : "done";
       setTempPrompt((prev) => `${prev}Observation: ${observation}\n`);
+      //TODO: Uncomment to auto run next prompt
+      // runOpenAI()
     } catch (error: any) {
       setOutput("Error executing script: " + error.message);
       setTempPrompt(
@@ -101,8 +96,9 @@ const BashScriptGenerator = () => {
     }
   };
   return (
-    <div className="w-full max-w-2xl mx-auto p-4 space-y-4">
-      <Card className="p-4">
+    // scrollable container
+    <div className="p-4 h-[80vh] w-[150vw] flex flex-row overflow-x-auto whitespace-nowrap space-x-4 space-y-4">
+      <Card className="p-4 w-full">
         <h2 className="text-2xl font-bold mb-4">Bash Script Generator</h2>
         <Textarea
           placeholder="Enter your query here"
@@ -114,7 +110,7 @@ const BashScriptGenerator = () => {
           Generate Bash Script(First Step)
         </Button>
       </Card>
-      <Card className="p-4">
+      <Card className="p-4 w-full overflow-y-auto whitespace-nowrap">
         <h3 className="text-xl font-semibold mb-2">Next Prompt Log</h3>
         <Textarea
           value={nextPrompt}
@@ -125,11 +121,12 @@ const BashScriptGenerator = () => {
         {/* <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap text-sm">
           {nextPrompt}
         </pre> */}
+        <InstructionText text={nextPrompt} />
         <Button onClick={generateBashScript} className="w-full">
           Run Next Prompt
         </Button>
       </Card>
-      <Card className="p-4">
+      <Card className="p-4 w-full">
         <h3 className="text-xl font-semibold mb-2">Generated Bash Script</h3>
         <Textarea
           value={bashScript}
@@ -142,41 +139,25 @@ const BashScriptGenerator = () => {
         </Button>
       </Card>
 
-      {/* <Card className="p-4">
-        <h3 className="text-xl font-semibold mb-2">Dependencies</h3>
-        <div className="space-y-2 mb-2">
-          {dependencies.map((dep) => (
-            <div key={dep.name} className="flex items-center justify-between">
-              <span>{dep.name}</span>
-              {dep.installed ? (
-                <Check className="text-green-500" />
-              ) : (
-                <Button size="sm" onClick={() => installDependency(dep.name)}>
-                  Install
-                </Button>
-              )}
-            </div>
-          ))}
-        </div>
-        <Button onClick={installAllDependencies} className="w-full">
-          Install All
-        </Button>
-      </Card> */}
-
-      <Card className="p-4">
+      <Card className="p-4 w-full overflow-y-auto whitespace-nowrap">
         <h3 className="text-xl font-semibold mb-2">OpenAI Log</h3>
         <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap text-sm">
           {openAILog}
         </pre>
       </Card>
-      <Card className="p-4">
+      <Card className="p-4 w-full overflow-y-auto whitespace-nowrap">
         <h3 className="text-xl font-semibold mb-2">ReAct Log</h3>
         <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap text-sm">
           {tempPrompt}
         </pre>
       </Card>
 
-      <Card className="p-4">
+      <Card className="p-4 w-full">
+        <h3 className="text-xl font-semibold mb-2">Bash Log</h3>
+        <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap">
+          {bashLog}
+        </pre>
+        {/* setBashLog */}
         <h3 className="text-xl font-semibold mb-2">Script Output</h3>
         <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap">
           {output}
