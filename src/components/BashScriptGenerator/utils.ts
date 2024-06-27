@@ -41,3 +41,14 @@ export const parseInstructionText = (text: string): InstructionStep[] => {
 
   return steps;
 };
+
+export const extractBashScript = (answer: string) => {
+  //If ```bash is found, extract the INSIDE bash script
+  if (answer?.includes("```bash")) {
+    const bashScript = answer.split("```bash")[1].split("```")[0];
+    //delete new line at the beginning and end
+    return bashScript.trim();
+  } else {
+    return answer;
+  }
+};

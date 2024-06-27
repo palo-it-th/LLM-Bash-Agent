@@ -4,9 +4,12 @@ const InstructionText: React.FC<{ text: string }> = ({ text }) => {
   const steps = parseInstructionText(text);
 
   return (
-    <div className="instruction-text p-4 bg-gray-100 rounded-lg mb-8">
+    <div className="instruction-text p-2 rounded-lg mb-8">
       {steps.map((step, index) => (
-        <div key={index} className={`step ${step.type.toLowerCase()}`}>
+        <div
+          key={index}
+          className={`step ${step.type.toLowerCase()} whitespace-pre-wrap bg-gray-100 my-2 p-2 rounded-xs`}
+        >
           <strong className="text-blue-600">
             {step.type} {step.index}:
           </strong>

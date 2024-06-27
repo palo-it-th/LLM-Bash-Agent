@@ -33,6 +33,8 @@ export async function POST(request: Request) {
             pwd
             \`\`\` 
                 - The directory location you are run the bash command can be random you must make sure to cd to the correct directory before executing the command
+                - You could also tmux to run multiple commands in a single Action
+                - If needed, since the session is stateless, you could use tmux to keep the state of the session If you want to use tmux, you must start the session with tmux new-session -d -s TaskName
             Observation: the result of the bash command
                 - cd must always be the first command in the Action
                 - cd must always followed by the absolute path
