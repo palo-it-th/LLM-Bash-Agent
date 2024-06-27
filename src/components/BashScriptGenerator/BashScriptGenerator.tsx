@@ -1,5 +1,5 @@
 "use client";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -17,17 +17,17 @@ const BashScriptGenerator = () => {
   const [openAILog, setOpenAILog] = useState("");
   const [tempPrompt, setTempPrompt] = useState("");
   const [breakAll, setBreakAll] = useState(false);
+  const breakAllRef = useRef(false);
   const [countAction, setCountAction] = useState(0);
   const [autoRun, setAutoRun] = useState(false);
 
   const runBashScript = useCallback(
     async (directBashScript?: string, message?: string) => {
-      if (breakAll) {
-        return;
-      }
+      if (breakAllRef.current) return;
       console.log({ directBashScript, bashScript });
       let chosenBashScript = directBashScript ? directBashScript : bashScript;
       try {
+        if (breakAllRef.current) return;
         const response = await fetch("/api/runBash", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -61,22 +61,20 @@ const BashScriptGenerator = () => {
         );
       }
     },
-    [bashScript, breakAll, tempPrompt, autoRun]
+    [bashScript, autoRun]
   );
 
   const runOpenAI = useCallback(
     async (directQuery?: string) => {
       let chooseQuery = directQuery ? directQuery : tempPrompt;
-      console.log({ breakAll, countAction });
+      console.log({ breakAllRef: breakAllRef.current, countAction });
       if (countAction > 25) {
         setOutput("Over limit 20");
-        setBreakAll(true);
+        breakAllRef.current = true;
         setCountAction(0);
         return;
       }
-      if (breakAll) {
-        return;
-      }
+      if (breakAllRef.current) return;
       if (query.length === 0) {
         setOutput("Please enter a query");
         return;
@@ -88,6 +86,7 @@ const BashScriptGenerator = () => {
       console.log({ chooseQuery });
       setCountAction((prev) => prev + 1);
       try {
+        if (breakAllRef.current) return;
         const response = await fetch("/api/runOpenAI", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -101,6 +100,7 @@ const BashScriptGenerator = () => {
         ) {
           console.log("Task is done");
           setOutput("Task is done");
+          setTempPrompt(`${chooseQuery}${data.output}`);
           return;
         }
         setTempPrompt(`${chooseQuery}${data.output}`);
@@ -124,7 +124,7 @@ const BashScriptGenerator = () => {
         setOutput("Error openai: " + error.message);
       }
     },
-    [autoRun, breakAll, countAction, query, runBashScript, tempPrompt]
+    [autoRun, countAction, query, runBashScript, tempPrompt]
   );
 
   return (
@@ -144,7 +144,7 @@ const BashScriptGenerator = () => {
           rows={10}
           className="font-mono text-sm mb-2"
         />
-        <div className="flex flex-col items-center space-y-2">
+        <div className="flex flex-col items-start space-y-2">
           <Button
             onClick={() => setTempPrompt(`Instruction: ${query}\n`)}
             className="w-full bg-blue-500"
@@ -180,19 +180,25 @@ const BashScriptGenerator = () => {
           </Button>
           <Button
             onClick={() => {
-              //toggle breakAll
+              breakAllRef.current = !breakAllRef.current;
               setBreakAll((prev) => !prev);
             }}
-            className={`w-full ${breakAll ? `bg-green-500` : `bg-red-500`}`}
+            className={`w-full ${
+              breakAllRef.current ? `bg-green-500` : `bg-red-500`
+            }`}
           >
             {breakAll ? "Resume" : "Break All"}
           </Button>
           <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap text-sm">
             Run Open AI Number: {countAction}
           </pre>
-          <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap">
-            {output?.trim()}
-          </pre>
+          {output?.trim().length > 0 ? (
+            <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap">
+              {output}
+            </pre>
+          ) : (
+            <></>
+          )}
           <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap text-sm">
             Auto is {autoRun ? "On" : "Off"}
           </pre>

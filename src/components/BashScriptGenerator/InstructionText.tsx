@@ -14,7 +14,7 @@ const InstructionText: React.FC<{ text: string }> = ({ text }) => {
             {step.type} {step.index}:
           </strong>
           {step.type === "Action" ? (
-            <pre className="mt-2 p-2 bg-gray-800 text-white rounded">
+            <pre className="whitespace-pre-wrap mt-2 p-2 bg-gray-800 text-white rounded">
               {step.content}
             </pre>
           ) : (
