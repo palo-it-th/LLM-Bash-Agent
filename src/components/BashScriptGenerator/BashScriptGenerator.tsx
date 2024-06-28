@@ -36,7 +36,7 @@ const BashScriptGenerator = () => {
         });
         const data = await response.json();
         console.log({ data });
-        setBashLog((prev) => `${prev}${chosenBashScript}\n`);
+        setBashLog((prev) => `${prev}${chosenBashScript}\n\n`);
         setOutput((prev) => `${prev}${data.output}\n`);
         let observation =
           data.output.length > 0
@@ -130,33 +130,43 @@ const BashScriptGenerator = () => {
     // scrollable container
     <div className="p-4 h-[95vh] flex flex-row overflow-x-auto whitespace-nowrap space-x-4">
       <Card className="p-4 w-full overflow-y-auto">
-        <h2 className="text-2xl font-bold mb-4">Bash Script Generator</h2>
+        <h2 className="text-2xl font-bold mb-4">Bash Script Magician</h2>
         <Textarea
           placeholder="Enter your query here"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="mb-2"
         />
-        {/* <Textarea
-          value={tempPrompt}
-          onChange={(e) => setTempPrompt(e.target.value)}
-          rows={10}
-          className="font-mono text-sm mb-2"
-        /> */}
         <div className="flex flex-col items-start space-y-2">
           <Button
-            onClick={() => setTempPrompt(`Instruction: ${query}\n`)}
+            onClick={() => {
+              if (query.length === 0) {
+                setOutput("Please enter a query");
+                return;
+              } else {
+                setOutput("Ready to Run AI");
+                setTempPrompt(`Instruction: ${query}\n`);
+              }
+            }}
             className="w-full bg-blue-500"
           >
             Set New Wish
           </Button>
           {tempPrompt ? (
-            <Button
-              onClick={() => runOpenAI()}
-              className={`w-full ${autoRun ? `bg-green-500` : `bg-blue-500`}`}
-            >
-              Run AI {autoRun ? "Auto" : ""}
-            </Button>
+            <>
+              <Button
+                onClick={() => runOpenAI()}
+                className={`w-full ${autoRun ? `bg-green-500` : `bg-blue-500`}`}
+              >
+                Run AI {autoRun ? "Auto" : ""}
+              </Button>
+              <Button
+                onClick={() => setAutoRun((prev) => !prev)}
+                className={`w-full ${autoRun ? `bg-green-500` : `bg-red-500`}`}
+              >
+                {autoRun ? "Auto On" : "Auto Off"}
+              </Button>
+            </>
           ) : (
             <></>
           )}
@@ -172,18 +182,12 @@ const BashScriptGenerator = () => {
             <></>
           )}
           <Button
-            onClick={() => setAutoRun((prev) => !prev)}
-            className={`w-full ${autoRun ? `bg-green-500` : `bg-red-500`}`}
-          >
-            {autoRun ? "Auto On" : "Auto Off"}
-          </Button>
-          <Button
             onClick={() => {
               breakAllRef.current = !breakAllRef.current;
               setBreakAll((prev) => !prev);
               setOutput("Break All: " + breakAllRef.current);
             }}
-            className={`w-full ${
+            className={`mt-4 w-full ${
               breakAllRef.current ? `bg-green-500` : `bg-red-500`
             }`}
           >
