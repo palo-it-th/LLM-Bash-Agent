@@ -1,12 +1,17 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
+import Anthropic from "@anthropic-ai/sdk";
 
+const anthropic = new Anthropic();
 const openai = new OpenAI();
 
-// const completion = await openai.chat.completions.create({
-//   messages: [{ role: "system", content: "You are a helpful assistant." }],
-//   model: "gpt-3.5-turbo",
+// const message = await anthropic.messages.create({
+//   max_tokens: 1024,
+//   messages: [{ role: 'user', content: 'Hello, Claude' }],
+//   model: 'claude-3-opus-20240229',
 // });
+
+// console.log(message.content);
 
 export async function POST(request: Request) {
   const { query } = await request.json();

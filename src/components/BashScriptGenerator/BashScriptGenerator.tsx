@@ -7,7 +7,6 @@ import { Card } from "@/components/ui/card";
 import { Check } from "lucide-react";
 import InstructionText from "./InstructionText";
 import { extractBashScript } from "./utils";
-import { run } from "node:test";
 
 const BashScriptGenerator = () => {
   const [query, setQuery] = useState("");
@@ -42,12 +41,12 @@ const BashScriptGenerator = () => {
         let observation =
           data.output.length > 0
             ? `Observation: ${data.output?.trim()}`
-            : "Observation: done";
+            : "Observation: No output";
 
         //TODO: Uncomment to auto run next prompt
         setOutput("AutoRun: " + autoRun);
         if (autoRun) {
-          setOutput("AutoRun: Run Open AI");
+          setOutput("AutoRun: Run AI");
           runOpenAI(`${message}${observation}\n`);
           console.log(`openai got: ${message}${observation}`);
         }
@@ -68,12 +67,12 @@ const BashScriptGenerator = () => {
     async (directQuery?: string) => {
       let chooseQuery = directQuery ? directQuery : tempPrompt;
       console.log({ breakAllRef: breakAllRef.current, countAction });
-      if (countAction > 25) {
-        setOutput("Over limit 20");
-        breakAllRef.current = true;
-        setCountAction(0);
-        return;
-      }
+      // if (countAction > 25) {
+      //   setOutput("Over limit 20");
+      //   breakAllRef.current = true;
+      //   setCountAction(0);
+      //   return;
+      // }
       if (breakAllRef.current) return;
       if (query.length === 0) {
         setOutput("Please enter a query");
@@ -129,8 +128,8 @@ const BashScriptGenerator = () => {
 
   return (
     // scrollable container
-    <div className="p-4 h-[80vh] w-[90vw] flex flex-row overflow-x-auto whitespace-nowrap space-x-4">
-      <Card className="p-4 w-full">
+    <div className="p-4 h-[95vh] flex flex-row overflow-x-auto whitespace-nowrap space-x-4">
+      <Card className="p-4 w-full overflow-y-auto">
         <h2 className="text-2xl font-bold mb-4">Bash Script Generator</h2>
         <Textarea
           placeholder="Enter your query here"
@@ -138,12 +137,12 @@ const BashScriptGenerator = () => {
           onChange={(e) => setQuery(e.target.value)}
           className="mb-2"
         />
-        <Textarea
+        {/* <Textarea
           value={tempPrompt}
           onChange={(e) => setTempPrompt(e.target.value)}
           rows={10}
           className="font-mono text-sm mb-2"
-        />
+        /> */}
         <div className="flex flex-col items-start space-y-2">
           <Button
             onClick={() => setTempPrompt(`Instruction: ${query}\n`)}
@@ -156,7 +155,7 @@ const BashScriptGenerator = () => {
               onClick={() => runOpenAI()}
               className={`w-full ${autoRun ? `bg-green-500` : `bg-blue-500`}`}
             >
-              Run Open AI {autoRun ? "Auto" : ""}
+              Run AI {autoRun ? "Auto" : ""}
             </Button>
           ) : (
             <></>
@@ -182,6 +181,7 @@ const BashScriptGenerator = () => {
             onClick={() => {
               breakAllRef.current = !breakAllRef.current;
               setBreakAll((prev) => !prev);
+              setOutput("Break All: " + breakAllRef.current);
             }}
             className={`w-full ${
               breakAllRef.current ? `bg-green-500` : `bg-red-500`
@@ -189,23 +189,24 @@ const BashScriptGenerator = () => {
           >
             {breakAll ? "Resume" : "Break All"}
           </Button>
-          <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap text-sm">
-            Run Open AI Number: {countAction}
-          </pre>
           {output?.trim().length > 0 ? (
             <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap">
-              {output}
+              Status: {output}
             </pre>
           ) : (
             <></>
           )}
+          <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap text-sm">
+            Run AI Number: {countAction}
+          </pre>
+
           <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap text-sm">
             Auto is {autoRun ? "On" : "Off"}
           </pre>
         </div>
       </Card>
       <Card className="p-4 w-full overflow-y-auto whitespace-nowrap">
-        <h3 className="text-xl font-semibold mb-2">Next Prompt Log</h3>
+        <h3 className="text-xl font-semibold mb-2">Format Prompt Log</h3>
         <InstructionText text={tempPrompt} />
       </Card>
 
@@ -224,7 +225,7 @@ const BashScriptGenerator = () => {
         <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap text-sm">
           {openAILog}
         </pre>
-        <h3 className="text-xl font-semibold mb-2">ReAct Log</h3>
+        <h3 className="text-xl font-semibold mb-2">Prompt Log</h3>
         <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap text-sm">
           {tempPrompt}
         </pre>
