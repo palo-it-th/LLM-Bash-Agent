@@ -31,8 +31,8 @@ Open [http://localhost:3201](http://localhost:3201) with your browser to see the
 
 1. Add Save and Copy to clipboard `tempPrompt` state for few shot prompts and examples.
 
-   - [ ] [BE] Save to examples folder.
-   - [ ] [FE] Copy to clipboard.
+   - [x] [BE] Save to examples folder.
+   - [x] [FE] Copy to clipboard.
 
 2. Group `Set New Wish` and `Run AI` buttons in a single button.
    - [ ] Delete `Set New Wish` button.

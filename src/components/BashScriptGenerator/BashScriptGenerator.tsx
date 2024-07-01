@@ -124,6 +124,28 @@ const BashScriptGenerator = () => {
     [autoRun, countAction, query, runBashScript, tempPrompt]
   )
 
+  const savePromptToFile = async () => {
+    try {
+      const response = await fetch('/api/savePrompt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: tempPrompt }),
+      })
+      const data = await response.json()
+      setOutput(data.output)
+    } catch (error: any) {
+      setOutput('Error saving prompt: ' + error.message)
+    }
+  }
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text)
+    } catch (err) {
+      console.error('Failed to copy: ', err)
+    }
+  }
+
   return (
     // scrollable container
     <div className="p-4 h-[95vh] flex flex-row overflow-x-auto whitespace-nowrap space-x-4">
@@ -201,7 +223,7 @@ const BashScriptGenerator = () => {
               className="sr-only peer"
               onClick={() => setAutoRun((prev) => !prev)}
             />
-            <div className="relative w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-600"></div>
+            <div className="relative w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 peer-checked:after:translate-x-full rtl:peer-checked:after:-translat</div>e-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-600"></div>
             <span className="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
               {autoRun ? 'Auto mode is on' : 'Auto mode is off'}
             </span>
@@ -220,9 +242,25 @@ const BashScriptGenerator = () => {
             </div>
           </div>
         </div>
+
+        {tempPrompt !== '' && (
+          <Button
+            onClick={savePromptToFile}
+            className={`mt-4 w-full bg-green-500`}
+          >
+            Save Prompt
+          </Button>
+        )}
       </Card>
       <Card className="p-4 w-full overflow-y-auto whitespace-nowrap">
-        <h3 className="text-xl font-semibold mb-2">Format Prompt Log</h3>
+        <div className="flex">
+          <h3 className="text-xl font-semibold mb-2 mr-2">
+            Formatted Prompt Log
+          </h3>
+          <Button onClick={() => copyToClipboard(tempPrompt)}>
+            Copy to clipboard
+          </Button>
+        </div>
         <InstructionText text={tempPrompt} />
       </Card>
 
