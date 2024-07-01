@@ -1,10 +1,8 @@
 "use client";
-import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Check } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { useCallback, useRef, useState } from "react";
 import InstructionText from "./InstructionText";
 import { extractBashScript } from "./utils";
 
@@ -153,20 +151,12 @@ const BashScriptGenerator = () => {
             Set New Wish
           </Button>
           {tempPrompt ? (
-            <>
-              <Button
-                onClick={() => runOpenAI()}
-                className={`w-full ${autoRun ? `bg-green-500` : `bg-blue-500`}`}
-              >
-                Run AI {autoRun ? "Auto" : ""}
-              </Button>
-              <Button
-                onClick={() => setAutoRun((prev) => !prev)}
-                className={`w-full ${autoRun ? `bg-green-500` : `bg-red-500`}`}
-              >
-                {autoRun ? "Auto On" : "Auto Off"}
-              </Button>
-            </>
+            <Button
+              onClick={() => runOpenAI()}
+              className={`w-full ${autoRun ? `bg-green-500` : `bg-blue-500`}`}
+            >
+              Run AI {autoRun ? "Auto" : ""}
+            </Button>
           ) : (
             <></>
           )}
@@ -204,9 +194,31 @@ const BashScriptGenerator = () => {
             Run AI Number: {countAction}
           </pre>
 
-          <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap text-sm">
-            Auto is {autoRun ? "On" : "Off"}
-          </pre>
+          <label className="inline-flex items-center me-5 cursor-pointer">
+            <input
+              type="checkbox"
+              value=""
+              className="sr-only peer"
+              onClick={() => setAutoRun((prev) => !prev)}
+            />
+            <div className="relative w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-600"></div>
+            <span className="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
+              {autoRun ? "Auto mode is on" : "Auto mode is off"}
+            </span>
+          </label>
+
+          <div
+            id="toast-undo"
+            className="flex items-center w-full p-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800"
+            role="alert"
+          >
+            <div className="text-sm font-normal text-wrap">
+              Auto mode automatically runs the AI script after each query. When
+              auto mode is on, the AI script will be executed without the need
+              for manual intervention. When auto mode is off, you need to
+              manually click the Run AI button to execute the AI script.
+            </div>
+          </div>
         </div>
       </Card>
       <Card className="p-4 w-full overflow-y-auto whitespace-nowrap">
