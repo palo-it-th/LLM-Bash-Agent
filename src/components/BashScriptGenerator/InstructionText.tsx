@@ -1,7 +1,7 @@
-import React from "react";
-import { parseInstructionText } from "./utils";
+import React from 'react'
+import { parseInstructionText } from './utils'
 const InstructionText: React.FC<{ text: string }> = ({ text }) => {
-  const steps = parseInstructionText(text);
+  const steps = parseInstructionText(text)
 
   return (
     <div className="instruction-text p-2 rounded-lg mb-8">
@@ -13,7 +13,7 @@ const InstructionText: React.FC<{ text: string }> = ({ text }) => {
           <strong className="text-blue-600">
             {step.type} {step.index}:
           </strong>
-          {step.type === "Action" ? (
+          {step.type === 'Action' ? (
             <pre className="whitespace-pre-wrap mt-2 p-2 bg-gray-800 text-white rounded">
               {step.content}
             </pre>
@@ -23,7 +23,7 @@ const InstructionText: React.FC<{ text: string }> = ({ text }) => {
         </div>
       ))}
     </div>
-  );
-};
+  )
+}
 
-export default InstructionText;
+export default InstructionText

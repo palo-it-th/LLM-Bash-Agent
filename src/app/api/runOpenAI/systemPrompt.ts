@@ -39,4 +39,4 @@ export const systemPrompt = `You are a human wish to bash script generator for M
             
             - When the task is done, you must end with a Thought: Task is done.
             Thought: The task is done
-            `;
+            `

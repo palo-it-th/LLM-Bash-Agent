@@ -1,13 +1,13 @@
-import { NextResponse } from "next/server";
-import { exec, spawn } from "child_process";
-import { promisify } from "util";
+import { NextResponse } from 'next/server'
+import { exec, spawn } from 'child_process'
+import { promisify } from 'util'
 
 // execute a shell command and return a promise
 // promisify is a utility function that converts a callback-based function to a promise-based function
-const execAsync = promisify(exec);
+const execAsync = promisify(exec)
 
 export async function POST(request: Request) {
-  const { script } = await request.json();
+  const { script } = await request.json()
 
   // IMPORTANT: This is a basic safeguard. In a real-world scenario,
   // you'd want much more robust security measures.
@@ -18,9 +18,9 @@ export async function POST(request: Request) {
   // }
 
   try {
-    const { stdout, stderr } = await execAsync(script);
-    return NextResponse.json({ output: stdout + stderr });
+    const { stdout, stderr } = await execAsync(script)
+    return NextResponse.json({ output: stdout + stderr })
   } catch (error: any) {
-    return NextResponse.json({ output: error.message }, { status: 500 });
+    return NextResponse.json({ output: error.message }, { status: 500 })
   }
 }
