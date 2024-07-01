@@ -6,7 +6,12 @@ import { useCallback, useRef, useState } from 'react'
 import InstructionText from './InstructionText'
 import { extractBashScript } from './utils'
 
-import { FaFileDownload, FaRegClipboard } from 'react-icons/fa'
+import {
+  FaEye,
+  FaEyeSlash,
+  FaFileDownload,
+  FaRegClipboard,
+} from 'react-icons/fa'
 
 const BashScriptGenerator = () => {
   const [query, setQuery] = useState('')
@@ -18,15 +23,16 @@ const BashScriptGenerator = () => {
   const [breakAll, setBreakAll] = useState(false)
   const breakAllRef = useRef(false)
   const [countAction, setCountAction] = useState(0)
-  const [autoRun, setAutoRun] = useState(false)
+  const [autoRun, setAutoRun] = useState(true)
+  const [showLog, setShowLog] = useState(true)
 
   const runBashScript = useCallback(
     async (directBashScript?: string, message?: string) => {
       if (breakAllRef.current) return
+
       console.log({ directBashScript, bashScript })
       let chosenBashScript = directBashScript ? directBashScript : bashScript
       try {
-        if (breakAllRef.current) return
         const response = await fetch('/api/runBash', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -35,15 +41,18 @@ const BashScriptGenerator = () => {
           }),
         })
         const data = await response.json()
+
         console.log({ data })
+
         setBashLog((prev) => `${prev}${chosenBashScript}\n\n`)
         setOutput((prev) => `${prev}${data.output}\n`)
+
         let observation =
           data.output.length > 0
             ? `Observation: ${data.output?.trim()}`
             : 'Observation: No output'
 
-        //TODO: Uncomment to auto run next prompt
+        // Auto run next prompt
         setOutput('AutoRun: ' + autoRun)
         if (autoRun) {
           setOutput('AutoRun: Run AI')
@@ -156,57 +165,47 @@ const BashScriptGenerator = () => {
         <Textarea
           placeholder="Enter your query here"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="mb-2"
+          onChange={(e) => {
+            setQuery(e.target.value)
+            setTempPrompt(`Instruction: ${e.target.value}\n`)
+          }}
+          className="mb-4"
         />
         <div className="flex flex-col items-start space-y-2">
-          <Button
-            onClick={() => {
-              if (query.length === 0) {
-                setOutput('Please enter a query')
-                return
-              } else {
-                setOutput('Ready to Run AI')
-                setTempPrompt(`Instruction: ${query}\n`)
-              }
-            }}
-            className="w-full bg-blue-500"
-          >
-            Set New Wish
-          </Button>
-          {tempPrompt ? (
+          {tempPrompt && (
             <Button
               onClick={() => runOpenAI()}
               className={`w-full ${autoRun ? `bg-green-500` : `bg-blue-500`}`}
             >
               Run AI {autoRun ? 'Auto' : ''}
             </Button>
-          ) : (
-            <></>
           )}
 
-          {!autoRun && bashScript.length > 0 ? (
+          {!autoRun && bashScript.length > 0 && (
             <Button
               onClick={() => runBashScript()}
               className="w-full bg-blue-500"
             >
               Run Bash Script
             </Button>
-          ) : (
-            <></>
           )}
-          <Button
-            onClick={() => {
-              breakAllRef.current = !breakAllRef.current
-              setBreakAll((prev) => !prev)
-              setOutput('Break All: ' + breakAllRef.current)
-            }}
-            className={`mt-4 w-full ${
-              breakAllRef.current ? `bg-green-500` : `bg-red-500`
-            }`}
-          >
-            {breakAll ? 'Resume' : 'Break All'}
-          </Button>
+
+          {/* Break all */}
+          {openAILog && (
+            <Button
+              onClick={() => {
+                breakAllRef.current = !breakAllRef.current
+                setBreakAll((prev) => !prev)
+                setOutput('Break All: ' + breakAllRef.current)
+              }}
+              className={`mt-4 w-full ${
+                breakAllRef.current ? `bg-green-500` : `bg-red-500`
+              }`}
+            >
+              {breakAll ? 'Resume' : 'Break All'}
+            </Button>
+          )}
+
           {output?.trim().length > 0 ? (
             <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap">
               Status: {output}
@@ -224,6 +223,7 @@ const BashScriptGenerator = () => {
               value=""
               className="sr-only peer"
               onClick={() => setAutoRun((prev) => !prev)}
+              defaultChecked={autoRun}
             />
             <div className="relative w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 peer-checked:after:translate-x-full rtl:peer-checked:after:-translat</div>e-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-600"></div>
             <span className="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
@@ -247,22 +247,14 @@ const BashScriptGenerator = () => {
       </Card>
       <Card className="p-4 w-full overflow-y-auto whitespace-nowrap">
         <div className="flex">
-          <h3 className="text-xl font-semibold mb-2 mr-2">
-            Formatted Prompt Log
-          </h3>
+          <h3 className="text-xl font-semibold mr-2">Formatted Prompt Log</h3>
 
           {tempPrompt && (
             <>
-              <button
-                onClick={() => copyToClipboard(tempPrompt)}
-                className="flex self-start"
-              >
+              <button onClick={() => copyToClipboard(tempPrompt)}>
                 <FaRegClipboard />
               </button>
-              <button
-                onClick={savePromptToFile}
-                className="flex self-start pl-1"
-              >
+              <button onClick={savePromptToFile} className="pl-1">
                 <FaFileDownload />
               </button>
             </>
@@ -272,28 +264,45 @@ const BashScriptGenerator = () => {
       </Card>
 
       <Card className="p-4 w-full overflow-y-auto whitespace-nowrap space-y-4">
-        <h2 className="text-xl font-semibold mb-2">Log</h2>
-        <h3 className="text-xl font-semibold mb-2">Generated Bash Script</h3>
-        <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap text-sm">
-          {bashScript}
-        </pre>
+        <div className="flex">
+          <h2 className="text-xl font-semibold mr-2">Log</h2>
+          {showLog ? (
+            <button onClick={() => setShowLog(false)}>
+              <FaEyeSlash />
+            </button>
+          ) : (
+            <button onClick={() => setShowLog(true)}>
+              <FaEye />
+            </button>
+          )}
+        </div>
+        {showLog && (
+          <>
+            <h3 className="text-xl font-semibold mb-2">
+              Generated Bash Script
+            </h3>
+            <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap text-sm">
+              {bashScript}
+            </pre>
 
-        <h3 className="text-xl font-semibold mb-2">Output</h3>
-        <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap">
-          {output?.trim()}
-        </pre>
-        <h3 className="text-xl font-semibold mb-2">OpenAI Log</h3>
-        <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap text-sm">
-          {openAILog}
-        </pre>
-        <h3 className="text-xl font-semibold mb-2">Prompt Log</h3>
-        <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap text-sm">
-          {tempPrompt}
-        </pre>
-        <h3 className="text-xl font-semibold mb-2">Bash Log</h3>
-        <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap">
-          {bashLog}
-        </pre>
+            <h3 className="text-xl font-semibold mb-2">Output</h3>
+            <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap">
+              {output?.trim()}
+            </pre>
+            <h3 className="text-xl font-semibold mb-2">OpenAI Log</h3>
+            <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap text-sm">
+              {openAILog}
+            </pre>
+            <h3 className="text-xl font-semibold mb-2">Prompt Log</h3>
+            <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap text-sm">
+              {tempPrompt}
+            </pre>
+            <h3 className="text-xl font-semibold mb-2">Bash Log</h3>
+            <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap">
+              {bashLog}
+            </pre>
+          </>
+        )}
       </Card>
     </div>
   )
