@@ -25,6 +25,8 @@ const BashScriptGenerator = () => {
   const [countAction, setCountAction] = useState(0)
   const [autoRun, setAutoRun] = useState(true)
   const [showLog, setShowLog] = useState(true)
+  const [shouldExecuteBashScript, setShouldExecuteBashScript] =
+    useState(!autoRun)
 
   const runBashScript = useCallback(
     async (directBashScript?: string, message?: string) => {
@@ -61,6 +63,7 @@ const BashScriptGenerator = () => {
         }
 
         setTempPrompt((prev) => `${prev}${observation}\n`)
+        setShouldExecuteBashScript(false)
       } catch (error: any) {
         setOutput('Error executing script: ' + error.message)
         setTempPrompt(
@@ -120,7 +123,9 @@ const BashScriptGenerator = () => {
         } else {
           setOutput('Bash script generated')
           setBashScript(bashScript)
-          //Wait after setting bash script run bash script
+          // Wait after setting bash script run bash script
+
+          setShouldExecuteBashScript(true)
 
           //TODO: Uncomment to Auto run bash script
           if (autoRun) {
@@ -157,6 +162,31 @@ const BashScriptGenerator = () => {
     }
   }
 
+  const mainActionButton = () => {
+    const runAIButton = (
+      <Button
+        onClick={() => runOpenAI()}
+        className={`w-full ${autoRun ? `bg-green-500` : `bg-blue-500`}`}
+      >
+        Run AI {autoRun ? 'Auto' : ''}
+      </Button>
+    )
+
+    if (autoRun) {
+      return runAIButton
+    }
+
+    if (shouldExecuteBashScript) {
+      return (
+        <Button onClick={() => runBashScript()} className="w-full bg-blue-500">
+          Run Bash Script
+        </Button>
+      )
+    }
+
+    return runAIButton
+  }
+
   return (
     // scrollable container
     <div className="p-4 h-[95vh] flex flex-row overflow-x-auto whitespace-nowrap space-x-4">
@@ -172,26 +202,10 @@ const BashScriptGenerator = () => {
           className="mb-4"
         />
         <div className="flex flex-col items-start space-y-2">
-          {tempPrompt && (
-            <Button
-              onClick={() => runOpenAI()}
-              className={`w-full ${autoRun ? `bg-green-500` : `bg-blue-500`}`}
-            >
-              Run AI {autoRun ? 'Auto' : ''}
-            </Button>
-          )}
-
-          {!autoRun && bashScript.length > 0 && (
-            <Button
-              onClick={() => runBashScript()}
-              className="w-full bg-blue-500"
-            >
-              Run Bash Script
-            </Button>
-          )}
+          {mainActionButton()}
 
           {/* Break all */}
-          {openAILog && (
+          {openAILog && autoRun && (
             <Button
               onClick={() => {
                 breakAllRef.current = !breakAllRef.current

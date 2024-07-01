@@ -37,7 +37,7 @@ Open [http://localhost:3201](http://localhost:3201) with your browser to see the
 2. Group `Set New Wish` and `Run AI` buttons in a single button.
    - [x] Delete `Set New Wish` button.
    - [x] Auto default is on
-   - [ ] When Auto is off, make `Run AI` and `Run Bash Script` buttons stay in the same row.
+   - [x] When Auto is off, make `Run AI` and `Run Bash Script` buttons stay in the same row.
 3. [x] Add a section of toggle button to hide/show the logs.
 4. Improve README.md with examples and instructions.
    - [ ] Add short video
