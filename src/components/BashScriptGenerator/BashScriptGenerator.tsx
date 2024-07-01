@@ -6,7 +6,7 @@ import { useCallback, useRef, useState } from 'react'
 import InstructionText from './InstructionText'
 import { extractBashScript } from './utils'
 
-import { FaRegClipboard } from 'react-icons/fa'
+import { FaFileDownload, FaRegClipboard } from 'react-icons/fa'
 
 const BashScriptGenerator = () => {
   const [query, setQuery] = useState('')
@@ -244,15 +244,6 @@ const BashScriptGenerator = () => {
             </div>
           </div>
         </div>
-
-        {tempPrompt !== '' && (
-          <Button
-            onClick={savePromptToFile}
-            className={`mt-4 w-full bg-green-500`}
-          >
-            Save Prompt
-          </Button>
-        )}
       </Card>
       <Card className="p-4 w-full overflow-y-auto whitespace-nowrap">
         <div className="flex">
@@ -261,12 +252,20 @@ const BashScriptGenerator = () => {
           </h3>
 
           {tempPrompt && (
-            <button
-              onClick={() => copyToClipboard(tempPrompt)}
-              className="flex self-start"
-            >
-              <FaRegClipboard />
-            </button>
+            <>
+              <button
+                onClick={() => copyToClipboard(tempPrompt)}
+                className="flex self-start"
+              >
+                <FaRegClipboard />
+              </button>
+              <button
+                onClick={savePromptToFile}
+                className="flex self-start pl-1"
+              >
+                <FaFileDownload />
+              </button>
+            </>
           )}
         </div>
         <InstructionText text={tempPrompt} />
