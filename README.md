@@ -1,9 +1,11 @@
 ## Getting Started
 
-Set OpenAI Key:
+Set up Key:
 
 - In your `~/.bash_profile` or other type of shell profile
-- Add `export OPENAI_API_KEY='YOUR_KEY'`
+- OpenAI: Add `export OPENAI_API_KEY='YOUR_KEY'`
+- Groq: Add `export GROQ_API_KEY='YOUR_KEY'`
+
 
 Install:
 
