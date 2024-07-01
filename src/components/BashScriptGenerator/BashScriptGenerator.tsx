@@ -6,6 +6,8 @@ import { useCallback, useRef, useState } from 'react'
 import InstructionText from './InstructionText'
 import { extractBashScript } from './utils'
 
+import { FaRegClipboard } from 'react-icons/fa'
+
 const BashScriptGenerator = () => {
   const [query, setQuery] = useState('')
   const [bashScript, setBashScript] = useState('')
@@ -257,9 +259,15 @@ const BashScriptGenerator = () => {
           <h3 className="text-xl font-semibold mb-2 mr-2">
             Formatted Prompt Log
           </h3>
-          <Button onClick={() => copyToClipboard(tempPrompt)}>
-            Copy to clipboard
-          </Button>
+
+          {tempPrompt && (
+            <button
+              onClick={() => copyToClipboard(tempPrompt)}
+              className="flex self-start"
+            >
+              <FaRegClipboard />
+            </button>
+          )}
         </div>
         <InstructionText text={tempPrompt} />
       </Card>
