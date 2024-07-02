@@ -247,6 +247,7 @@ const BashScriptGenerator = () => {
               </span>
             </label>
 
+            {/* "Auto mode" toggle button */}
             <button
               title="Auto mode automatically runs the AI script after each query. When
               auto mode is on, the AI script will be executed without the need
