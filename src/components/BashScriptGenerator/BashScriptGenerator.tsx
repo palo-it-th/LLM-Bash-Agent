@@ -26,7 +26,7 @@ const BashScriptGenerator = () => {
   const [bashLog, setBashLog] = useState('')
   const [openAILog, setOpenAILog] = useState('')
   const [tempPrompt, setTempPrompt] = useState('')
-  const [breakAll, setBreakAll] = useState(false)
+  const [breakAll, setBreakAll] = useState(false) // Break all actions flag for stopping all AI and bash script actions
   const [countAction, setCountAction] = useState(0)
   const [autoRun, setAutoRun] = useState(true)
   const [showLog, setShowLog] = useState(true)
@@ -58,11 +58,11 @@ const BashScriptGenerator = () => {
       setOutput(TaskStatus.Done)
       return
     }
+
     console.log({ chooseQuery })
     setCountAction((prev) => prev + 1)
-    try {
-      if (breakAllRef.current) return
 
+    try {
       const response = await fetch('/api/runOpenAI', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -92,7 +92,7 @@ const BashScriptGenerator = () => {
 
         setShouldExecuteBashScript(true)
 
-        //TODO: Uncomment to Auto run bash script
+        // Auto-run bash script
         if (autoRun) {
           setOutput('Run bash script')
           runBashScript(bashScript, `${chooseQuery}${data.output}`)
@@ -194,12 +194,14 @@ const BashScriptGenerator = () => {
             breakAllRef.current = !breakAllRef.current
             setBreakAll((prev) => !prev)
             setOutput('Break All: ' + breakAllRef.current)
+            runBashScript(extractBashScript(openAILog), tempPrompt)
           }}
-          className={`mt-4 w-full ${
+          className={`w-full ${
             breakAllRef.current ? `bg-green-500` : `bg-red-500`
           }`}
         >
           {breakAll ? 'Resume' : 'Break All'}
+          {isLoading && <Spinner className="flex ml-1" />}
         </Button>
       )
     }
