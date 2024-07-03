@@ -35,7 +35,7 @@ const BashScriptGenerator = () => {
   const [bashLog, setBashLog] = useState('')
   const [openAILog, setOpenAILog] = useState('')
   const [tempPrompt, setTempPrompt] = useState('')
-  const [breakAll, setBreakAll] = useState(false) // Break all actions flag for stopping all AI and bash script actions
+  const [isBreakAll, setIsBreakAll] = useState(false) // Break all actions flag for stopping all AI and bash script actions
   const [countAction, setCountAction] = useState(0)
   const [autoRun, setAutoRun] = useState(true)
   const [showLog, setShowLog] = useState(true)
@@ -43,7 +43,6 @@ const BashScriptGenerator = () => {
     useState(!autoRun)
   const [isLoading, setIsLoading] = useState(false)
 
-  const breakAllRef = useRef(false)
   const runAIRef = useRef((directQuery?: string) => {})
 
   // Diagram
@@ -54,14 +53,14 @@ const BashScriptGenerator = () => {
 
   runAIRef.current = async (directQuery?: string) => {
     let chooseQuery = directQuery ? directQuery : tempPrompt
-    console.log({ breakAllRef: breakAllRef.current, countAction })
+    console.log({ isBreakAll, countAction })
     // if (countAction > 25) {
     //   setOutput("Over limit 20");
     //   breakAllRef.current = true;
     //   setCountAction(0);
     //   return;
     // }
-    if (breakAllRef.current) {
+    if (isBreakAll) {
       return
     }
 
@@ -77,6 +76,7 @@ const BashScriptGenerator = () => {
     console.log({ chooseQuery })
     setCountAction((prev) => prev + 1)
     setDiagramState(DiagramState.runningAI)
+    setIsLoading(true)
 
     try {
       const response = await fetch('/api/runOpenAI', {
@@ -118,6 +118,7 @@ const BashScriptGenerator = () => {
       setOutput('Error openai: ' + error.message)
     } finally {
       setDiagramState(DiagramState.finishedAI)
+      setIsLoading(false)
     }
   }
 
@@ -155,7 +156,7 @@ const BashScriptGenerator = () => {
 
   const runBashScript = useCallback(
     async (directBashScript?: string, message?: string) => {
-      if (breakAllRef.current) {
+      if (isBreakAll) {
         return
       }
 
@@ -202,7 +203,7 @@ const BashScriptGenerator = () => {
         setDiagramState(DiagramState.finishedBashScript)
       }
     },
-    [bashScript, autoRun]
+    [isBreakAll, bashScript, autoRun]
   )
 
   const savePromptToFile = async () => {
@@ -232,17 +233,20 @@ const BashScriptGenerator = () => {
       return (
         <Button
           onClick={() => {
-            breakAllRef.current = !breakAllRef.current
-            setBreakAll((prev) => !prev)
-            setOutput('Break All: ' + breakAllRef.current)
+            setIsBreakAll((prev) => !prev)
+            setOutput('Break All: ' + isBreakAll)
             runBashScript(extractBashScript(openAILog), tempPrompt)
           }}
-          className={`w-full ${
-            breakAllRef.current ? `bg-green-500` : `bg-red-500`
-          }`}
+          className={`w-full ${isBreakAll ? `bg-green-500` : `bg-red-500`}`}
         >
-          {breakAll ? 'Resume' : 'Break All'}
-          {isLoading && <Spinner className="flex ml-1" />}
+          {isBreakAll ? (
+            'Resume'
+          ) : (
+            <>
+              Break All
+              <Spinner className="flex ml-1" />
+            </>
+          )}
         </Button>
       )
     }
@@ -277,7 +281,7 @@ const BashScriptGenerator = () => {
   return (
     // scrollable container
     <>
-      <div className="p-4 flex flex-row overflow-x-auto whitespace-nowrap space-x-4">
+      <div className="h-[95vh] p-4 flex flex-row overflow-x-auto whitespace-nowrap space-x-4">
         <Card className="p-4 w-full overflow-y-auto">
           <h2 className="text-2xl font-bold mb-4">Bash Script Magician</h2>
           <Textarea
@@ -306,6 +310,7 @@ const BashScriptGenerator = () => {
               Run AI Number: {countAction}
             </pre>
 
+            {/* "Auto mode" toggle button */}
             <div className="flex">
               <label className="inline-flex items-center mr-2 cursor-pointer">
                 <input
@@ -321,7 +326,6 @@ const BashScriptGenerator = () => {
                 </span>
               </label>
 
-              {/* "Auto mode" toggle button */}
               <button
                 title="Auto mode automatically runs the AI script after each query. When
               auto mode is on, the AI script will be executed without the need
@@ -395,6 +399,7 @@ const BashScriptGenerator = () => {
       </div>
       <MermaidDiagrams coreFunctionDiagram={diagramState} />
 
+      {/* Sticky action button at the bottom right */}
       <div
         className={`fixed bottom-0 w-full ${showStickyActionButton ? '' : 'hidden'}`}
       >
