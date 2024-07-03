@@ -21,6 +21,9 @@ export const coreFunctionMermaid = `
     N -->|No| O{Auto Run?}
     O -->|Yes| F
     O -->|No| L
+
+    classDef yellow fill:#FFFAA0,stroke:#FDDA0D,stroke-width:1px;
+    classDef green fill:#C5EBAA,stroke:#2E8B57,stroke-width:1px;
 `
 
 export const internalFunctionMermaid = `

@@ -6,7 +6,6 @@ Set up Key:
 - OpenAI: Add `export OPENAI_API_KEY='YOUR_KEY'`
 - Groq: Add `export GROQ_API_KEY='YOUR_KEY'`
 
-
 Install:
 
 ```bash
@@ -45,7 +44,7 @@ Open [http://localhost:3201](http://localhost:3201) with your browser to see the
    - [ ] Add short video
    - [x] Add examples in another readme file and link it here.
 5. Add a section to display mermaid diagrams with color indicate status of the task.
-   - [ ] Core Functionality:
+   - [x] Core Functionality:
 
 ```mermaid
 graph TD

@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import InstructionText from './InstructionText'
 import { extractBashScript } from './utils'
 
+import { coreFunctionMermaid } from '@/config/mermaidConfig'
 import {
   FaEye,
   FaEyeSlash,
@@ -13,7 +14,15 @@ import {
   FaInfoCircle,
   FaRegClipboard,
 } from 'react-icons/fa'
+import MermaidDiagrams from '../MermaidDiagrams/MermaidDiagrams'
 import { Spinner } from '../ui/spinner'
+
+const DiagramState = {
+  runningAI: `${coreFunctionMermaid}\nclass F yellow`,
+  runningBashScript: `${coreFunctionMermaid}\nclass K yellow`,
+  finishedAI: `${coreFunctionMermaid}\nclass F green`,
+  finishedBashScript: `${coreFunctionMermaid}\nclass K green`,
+}
 
 enum TaskStatus {
   Done = 'Task is done',
@@ -36,6 +45,9 @@ const BashScriptGenerator = () => {
 
   const breakAllRef = useRef(false)
   const runAIRef = useRef((directQuery?: string) => {})
+
+  // Diagram
+  const [diagramState, setDiagramState] = useState('')
 
   runAIRef.current = async (directQuery?: string) => {
     let chooseQuery = directQuery ? directQuery : tempPrompt
@@ -61,6 +73,7 @@ const BashScriptGenerator = () => {
 
     console.log({ chooseQuery })
     setCountAction((prev) => prev + 1)
+    setDiagramState(DiagramState.runningAI)
 
     try {
       const response = await fetch('/api/runOpenAI', {
@@ -100,29 +113,32 @@ const BashScriptGenerator = () => {
       }
     } catch (error: any) {
       setOutput('Error openai: ' + error.message)
+    } finally {
+      setDiagramState(DiagramState.finishedAI)
     }
   }
 
   // Set loading state
   useEffect(() => {
     if (
-      query.length > 0 &&
-      countAction > 0 &&
-      output !== TaskStatus.Done &&
-      !breakAll
+      diagramState === DiagramState.runningAI ||
+      diagramState === DiagramState.runningBashScript
     ) {
       setIsLoading(true)
       return
     }
     setIsLoading(false)
-  }, [query, countAction, output, breakAll])
+  }, [diagramState])
 
   const runBashScript = useCallback(
     async (directBashScript?: string, message?: string) => {
-      if (breakAllRef.current) return
+      if (breakAllRef.current) {
+        return
+      }
 
       console.log({ directBashScript, bashScript })
       let chosenBashScript = directBashScript ? directBashScript : bashScript
+      setDiagramState(DiagramState.runningBashScript)
       try {
         const response = await fetch('/api/runBash', {
           method: 'POST',
@@ -159,6 +175,8 @@ const BashScriptGenerator = () => {
           (prev) =>
             `${prev}Observation: Error executing script: ${error.message}\n`
         )
+      } finally {
+        setDiagramState(DiagramState.finishedBashScript)
       }
     },
     [bashScript, autoRun]
@@ -208,8 +226,15 @@ const BashScriptGenerator = () => {
 
     if (shouldExecuteBashScript) {
       return (
-        <Button onClick={() => runBashScript()} className="w-full bg-blue-500">
+        <Button
+          onClick={() =>
+            runBashScript(extractBashScript(openAILog), tempPrompt)
+          }
+          className="w-full bg-blue-500"
+          disabled={isLoading}
+        >
           Run Bash Script
+          {isLoading && <Spinner className="flex ml-1" />}
         </Button>
       )
     }
@@ -218,8 +243,9 @@ const BashScriptGenerator = () => {
       <Button
         onClick={() => runAIRef.current()}
         className={`w-full ${autoRun ? `bg-green-500` : `bg-blue-500`}`}
+        disabled={isLoading}
       >
-        Run AI {autoRun ? 'Auto' : ''}
+        Run AI {autoRun ? '(Auto)' : ''}
         {isLoading && <Spinner className="flex ml-1" />}
       </Button>
     )
@@ -227,122 +253,125 @@ const BashScriptGenerator = () => {
 
   return (
     // scrollable container
-    <div className="p-4 h-[95vh] flex flex-row overflow-x-auto whitespace-nowrap space-x-4">
-      <Card className="p-4 w-full overflow-y-auto">
-        <h2 className="text-2xl font-bold mb-4">Bash Script Magician</h2>
-        <Textarea
-          placeholder="Enter your query here"
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value)
-            setTempPrompt(`Instruction: ${e.target.value}\n`)
-          }}
-          className="mb-4"
-          disabled={isLoading}
-        />
-        <div className="flex flex-col items-start space-y-2">
-          {mainActionButton()}
+    <>
+      <div className="h-[95vh] p-4 flex flex-row overflow-x-auto whitespace-nowrap space-x-4">
+        <Card className="p-4 w-full overflow-y-auto">
+          <h2 className="text-2xl font-bold mb-4">Bash Script Magician</h2>
+          <Textarea
+            placeholder="Enter your query here"
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value)
+              setTempPrompt(`Instruction: ${e.target.value}\n`)
+            }}
+            className="mb-4"
+            disabled={isLoading}
+          />
+          <div className="flex flex-col items-start space-y-2">
+            {mainActionButton()}
 
-          <div className="pt-2" />
+            <div className="pt-2" />
 
-          {output?.trim().length > 0 ? (
-            <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap">
-              Status: {output}
+            {output?.trim().length > 0 ? (
+              <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap">
+                Status: {output}
+              </pre>
+            ) : (
+              <></>
+            )}
+            <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap text-sm">
+              Run AI Number: {countAction}
             </pre>
-          ) : (
-            <></>
-          )}
-          <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap text-sm">
-            Run AI Number: {countAction}
-          </pre>
 
-          <div className="flex">
-            <label className="inline-flex items-center mr-2 cursor-pointer">
-              <input
-                type="checkbox"
-                value=""
-                className="sr-only peer"
-                onClick={() => setAutoRun((prev) => !prev)}
-                defaultChecked={autoRun}
-              />
-              <div className="relative w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 peer-checked:after:translate-x-full rtl:peer-checked:after:-translat</div>e-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-600"></div>
-              <span className="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
-                {autoRun ? 'Auto mode is on' : 'Auto mode is off'}
-              </span>
-            </label>
+            <div className="flex">
+              <label className="inline-flex items-center mr-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  value=""
+                  className="sr-only peer"
+                  onClick={() => setAutoRun((prev) => !prev)}
+                  defaultChecked={autoRun}
+                />
+                <div className="relative w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 peer-checked:after:translate-x-full rtl:peer-checked:after:-translat</div>e-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-600"></div>
+                <span className="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
+                  {autoRun ? 'Auto mode is on' : 'Auto mode is off'}
+                </span>
+              </label>
 
-            {/* "Auto mode" toggle button */}
-            <button
-              title="Auto mode automatically runs the AI script after each query. When
+              {/* "Auto mode" toggle button */}
+              <button
+                title="Auto mode automatically runs the AI script after each query. When
               auto mode is on, the AI script will be executed without the need
               for manual intervention. When auto mode is off, you need to
               manually click the Run AI button to execute the AI script."
-            >
-              <FaInfoCircle />
-            </button>
+              >
+                <FaInfoCircle />
+              </button>
+            </div>
           </div>
-        </div>
-      </Card>
-      <Card className="p-4 w-full overflow-y-auto whitespace-nowrap">
-        <div className="flex">
-          <h3 className="text-xl font-semibold mr-2">Formatted Prompt Log</h3>
+        </Card>
+        <Card className="p-4 w-full overflow-y-auto whitespace-nowrap">
+          <div className="flex">
+            <h3 className="text-xl font-semibold mr-2">Formatted Prompt Log</h3>
 
-          {tempPrompt && (
+            {tempPrompt && (
+              <>
+                <button onClick={() => copyToClipboard(tempPrompt)}>
+                  <FaRegClipboard />
+                </button>
+                <button onClick={savePromptToFile} className="pl-1">
+                  <FaFileDownload />
+                </button>
+              </>
+            )}
+          </div>
+          <InstructionText text={tempPrompt} />
+        </Card>
+
+        <Card className="p-4 w-full overflow-y-auto whitespace-nowrap space-y-4">
+          <div className="flex">
+            <h2 className="text-xl font-semibold mr-2">Log</h2>
+            {showLog ? (
+              <button onClick={() => setShowLog(false)}>
+                <FaEyeSlash />
+              </button>
+            ) : (
+              <button onClick={() => setShowLog(true)}>
+                <FaEye />
+              </button>
+            )}
+          </div>
+          {showLog && (
             <>
-              <button onClick={() => copyToClipboard(tempPrompt)}>
-                <FaRegClipboard />
-              </button>
-              <button onClick={savePromptToFile} className="pl-1">
-                <FaFileDownload />
-              </button>
+              <h3 className="text-xl font-semibold mb-2">
+                Generated Bash Script
+              </h3>
+              <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap text-sm">
+                {bashScript}
+              </pre>
+
+              <h3 className="text-xl font-semibold mb-2">Output</h3>
+              <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap">
+                {output?.trim()}
+              </pre>
+              <h3 className="text-xl font-semibold mb-2">OpenAI Log</h3>
+              <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap text-sm">
+                {openAILog}
+              </pre>
+              <h3 className="text-xl font-semibold mb-2">Prompt Log</h3>
+              <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap text-sm">
+                {tempPrompt}
+              </pre>
+              <h3 className="text-xl font-semibold mb-2">Bash Log</h3>
+              <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap">
+                {bashLog}
+              </pre>
             </>
           )}
-        </div>
-        <InstructionText text={tempPrompt} />
-      </Card>
-
-      <Card className="p-4 w-full overflow-y-auto whitespace-nowrap space-y-4">
-        <div className="flex">
-          <h2 className="text-xl font-semibold mr-2">Log</h2>
-          {showLog ? (
-            <button onClick={() => setShowLog(false)}>
-              <FaEyeSlash />
-            </button>
-          ) : (
-            <button onClick={() => setShowLog(true)}>
-              <FaEye />
-            </button>
-          )}
-        </div>
-        {showLog && (
-          <>
-            <h3 className="text-xl font-semibold mb-2">
-              Generated Bash Script
-            </h3>
-            <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap text-sm">
-              {bashScript}
-            </pre>
-
-            <h3 className="text-xl font-semibold mb-2">Output</h3>
-            <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap">
-              {output?.trim()}
-            </pre>
-            <h3 className="text-xl font-semibold mb-2">OpenAI Log</h3>
-            <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap text-sm">
-              {openAILog}
-            </pre>
-            <h3 className="text-xl font-semibold mb-2">Prompt Log</h3>
-            <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap text-sm">
-              {tempPrompt}
-            </pre>
-            <h3 className="text-xl font-semibold mb-2">Bash Log</h3>
-            <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap">
-              {bashLog}
-            </pre>
-          </>
-        )}
-      </Card>
-    </div>
+        </Card>
+      </div>
+      <MermaidDiagrams coreFunctionDiagram={diagramState} />
+    </>
   )
 }
 
