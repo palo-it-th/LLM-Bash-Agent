@@ -187,18 +187,21 @@ const BashScriptGenerator = () => {
   }
 
   const mainActionButton = () => {
-    const runAIButton = (
-      <Button
-        onClick={() => runAIRef.current()}
-        className={`w-full ${autoRun ? `bg-green-500` : `bg-blue-500`}`}
-      >
-        Run AI {autoRun ? 'Auto' : ''}
-        {isLoading && <Spinner className="flex ml-1" />}
-      </Button>
-    )
-
-    if (autoRun) {
-      return runAIButton
+    if (openAILog && autoRun) {
+      return (
+        <Button
+          onClick={() => {
+            breakAllRef.current = !breakAllRef.current
+            setBreakAll((prev) => !prev)
+            setOutput('Break All: ' + breakAllRef.current)
+          }}
+          className={`mt-4 w-full ${
+            breakAllRef.current ? `bg-green-500` : `bg-red-500`
+          }`}
+        >
+          {breakAll ? 'Resume' : 'Break All'}
+        </Button>
+      )
     }
 
     if (shouldExecuteBashScript) {
@@ -209,7 +212,15 @@ const BashScriptGenerator = () => {
       )
     }
 
-    return runAIButton
+    return (
+      <Button
+        onClick={() => runAIRef.current()}
+        className={`w-full ${autoRun ? `bg-green-500` : `bg-blue-500`}`}
+      >
+        Run AI {autoRun ? 'Auto' : ''}
+        {isLoading && <Spinner className="flex ml-1" />}
+      </Button>
+    )
   }
 
   return (
@@ -225,25 +236,12 @@ const BashScriptGenerator = () => {
             setTempPrompt(`Instruction: ${e.target.value}\n`)
           }}
           className="mb-4"
+          disabled={isLoading}
         />
         <div className="flex flex-col items-start space-y-2">
           {mainActionButton()}
 
-          {/* Break all */}
-          {openAILog && autoRun && (
-            <Button
-              onClick={() => {
-                breakAllRef.current = !breakAllRef.current
-                setBreakAll((prev) => !prev)
-                setOutput('Break All: ' + breakAllRef.current)
-              }}
-              className={`mt-4 w-full ${
-                breakAllRef.current ? `bg-green-500` : `bg-red-500`
-              }`}
-            >
-              {breakAll ? 'Resume' : 'Break All'}
-            </Button>
-          )}
+          <div className="pt-2" />
 
           {output?.trim().length > 0 ? (
             <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap">
