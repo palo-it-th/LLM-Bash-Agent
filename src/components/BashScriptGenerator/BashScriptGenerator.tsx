@@ -48,6 +48,9 @@ const BashScriptGenerator = () => {
 
   // Diagram
   const [diagramState, setDiagramState] = useState('')
+  // Sticky action button
+  const [showStickyActionButton, setShowStickyActionButton] = useState(false)
+  const [lastScrollY, setLastScrollY] = useState(0)
 
   runAIRef.current = async (directQuery?: string) => {
     let chooseQuery = directQuery ? directQuery : tempPrompt
@@ -130,6 +133,26 @@ const BashScriptGenerator = () => {
     setIsLoading(false)
   }, [diagramState])
 
+  // Sticky action button on scroll event listener to show/hide the button
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY
+      // Check if the user is at the top of the page. If so, hide the button. If not, show the button.
+      if (currentScrollY < 200) {
+        setShowStickyActionButton(false)
+      } else {
+        setShowStickyActionButton(true)
+      }
+      setLastScrollY(currentScrollY)
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+    }
+  }, [lastScrollY])
+
   const runBashScript = useCallback(
     async (directBashScript?: string, message?: string) => {
       if (breakAllRef.current) {
@@ -204,7 +227,7 @@ const BashScriptGenerator = () => {
     }
   }
 
-  const mainActionButton = () => {
+  const renderActionButton = () => {
     if (openAILog && autoRun) {
       return (
         <Button
@@ -254,7 +277,7 @@ const BashScriptGenerator = () => {
   return (
     // scrollable container
     <>
-      <div className="h-[95vh] p-4 flex flex-row overflow-x-auto whitespace-nowrap space-x-4">
+      <div className="p-4 flex flex-row overflow-x-auto whitespace-nowrap space-x-4">
         <Card className="p-4 w-full overflow-y-auto">
           <h2 className="text-2xl font-bold mb-4">Bash Script Magician</h2>
           <Textarea
@@ -268,7 +291,7 @@ const BashScriptGenerator = () => {
             disabled={isLoading}
           />
           <div className="flex flex-col items-start space-y-2">
-            {mainActionButton()}
+            {renderActionButton()}
 
             <div className="pt-2" />
 
@@ -371,6 +394,12 @@ const BashScriptGenerator = () => {
         </Card>
       </div>
       <MermaidDiagrams coreFunctionDiagram={diagramState} />
+
+      <div
+        className={`fixed bottom-0 w-full ${showStickyActionButton ? '' : 'hidden'}`}
+      >
+        <div className="my-8 float-right px-5">{renderActionButton()}</div>
+      </div>
     </>
   )
 }
