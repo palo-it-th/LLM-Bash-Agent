@@ -27,7 +27,6 @@ const BashScriptGenerator = () => {
   const [openAILog, setOpenAILog] = useState('')
   const [tempPrompt, setTempPrompt] = useState('')
   const [breakAll, setBreakAll] = useState(false)
-  const breakAllRef = useRef(false)
   const [countAction, setCountAction] = useState(0)
   const [autoRun, setAutoRun] = useState(true)
   const [showLog, setShowLog] = useState(true)
@@ -35,6 +34,76 @@ const BashScriptGenerator = () => {
     useState(!autoRun)
   const [isLoading, setIsLoading] = useState(false)
 
+  const breakAllRef = useRef(false)
+  const runAIRef = useRef((directQuery?: string) => {})
+
+  runAIRef.current = async (directQuery?: string) => {
+    let chooseQuery = directQuery ? directQuery : tempPrompt
+    console.log({ breakAllRef: breakAllRef.current, countAction })
+    // if (countAction > 25) {
+    //   setOutput("Over limit 20");
+    //   breakAllRef.current = true;
+    //   setCountAction(0);
+    //   return;
+    // }
+    if (breakAllRef.current) {
+      return
+    }
+
+    if (query.length === 0) {
+      setOutput('Please enter a query')
+      return
+    }
+    if (tempPrompt.includes(TaskStatus.Done)) {
+      setOutput(TaskStatus.Done)
+      return
+    }
+    console.log({ chooseQuery })
+    setCountAction((prev) => prev + 1)
+    try {
+      if (breakAllRef.current) return
+
+      const response = await fetch('/api/runOpenAI', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: chooseQuery }),
+      })
+      const data = await response.json()
+      if (
+        data.output.toLowerCase().includes('thought: task is done') ||
+        data.output.toLowerCase().includes(TaskStatus.Done) ||
+        data.output === ''
+      ) {
+        console.log(TaskStatus.Done)
+        setOutput(TaskStatus.Done)
+        setTempPrompt(`${chooseQuery}${data.output}`)
+        return
+      }
+      setTempPrompt(`${chooseQuery}${data.output}`)
+      setOpenAILog(data.output)
+      const bashScript = extractBashScript(data.output)
+      if (bashScript.length === 0) {
+        setOutput('No bash script found')
+        return
+      } else {
+        setOutput('Bash script generated')
+        setBashScript(bashScript)
+        // Wait after setting bash script run bash script
+
+        setShouldExecuteBashScript(true)
+
+        //TODO: Uncomment to Auto run bash script
+        if (autoRun) {
+          setOutput('Run bash script')
+          runBashScript(bashScript, `${chooseQuery}${data.output}`)
+        }
+      }
+    } catch (error: any) {
+      setOutput('Error openai: ' + error.message)
+    }
+  }
+
+  // Set loading state
   useEffect(() => {
     if (
       query.length > 0 &&
@@ -78,7 +147,7 @@ const BashScriptGenerator = () => {
         setOutput('AutoRun: ' + autoRun)
         if (autoRun) {
           setOutput('AutoRun: Run AI')
-          runOpenAI(`${message}${observation}\n`)
+          runAIRef.current(`${message}${observation}\n`)
           console.log(`openai got: ${message}${observation}`)
         }
 
@@ -93,71 +162,6 @@ const BashScriptGenerator = () => {
       }
     },
     [bashScript, autoRun]
-  )
-
-  const runOpenAI = useCallback(
-    async (directQuery?: string) => {
-      let chooseQuery = directQuery ? directQuery : tempPrompt
-      console.log({ breakAllRef: breakAllRef.current, countAction })
-      // if (countAction > 25) {
-      //   setOutput("Over limit 20");
-      //   breakAllRef.current = true;
-      //   setCountAction(0);
-      //   return;
-      // }
-      if (breakAllRef.current) return
-      if (query.length === 0) {
-        setOutput('Please enter a query')
-        return
-      }
-      if (tempPrompt.includes(TaskStatus.Done)) {
-        setOutput(TaskStatus.Done)
-        return
-      }
-      console.log({ chooseQuery })
-      setCountAction((prev) => prev + 1)
-      try {
-        if (breakAllRef.current) return
-        const response = await fetch('/api/runOpenAI', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query: chooseQuery }),
-        })
-        const data = await response.json()
-        if (
-          data.output.toLowerCase().includes('thought: task is done') ||
-          data.output.toLowerCase().includes(TaskStatus.Done) ||
-          data.output === ''
-        ) {
-          console.log(TaskStatus.Done)
-          setOutput(TaskStatus.Done)
-          setTempPrompt(`${chooseQuery}${data.output}`)
-          return
-        }
-        setTempPrompt(`${chooseQuery}${data.output}`)
-        setOpenAILog(data.output)
-        const bashScript = extractBashScript(data.output)
-        if (bashScript.length === 0) {
-          setOutput('No bash script found')
-          return
-        } else {
-          setOutput('Bash script generated')
-          setBashScript(bashScript)
-          // Wait after setting bash script run bash script
-
-          setShouldExecuteBashScript(true)
-
-          //TODO: Uncomment to Auto run bash script
-          if (autoRun) {
-            setOutput('Run bash script')
-            runBashScript(bashScript, `${chooseQuery}${data.output}`)
-          }
-        }
-      } catch (error: any) {
-        setOutput('Error openai: ' + error.message)
-      }
-    },
-    [autoRun, countAction, query, runBashScript, tempPrompt]
   )
 
   const savePromptToFile = async () => {
@@ -185,7 +189,7 @@ const BashScriptGenerator = () => {
   const mainActionButton = () => {
     const runAIButton = (
       <Button
-        onClick={() => runOpenAI()}
+        onClick={() => runAIRef.current()}
         className={`w-full ${autoRun ? `bg-green-500` : `bg-blue-500`}`}
       >
         Run AI {autoRun ? 'Auto' : ''}
