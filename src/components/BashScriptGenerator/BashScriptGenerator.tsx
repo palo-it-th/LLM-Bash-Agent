@@ -2,7 +2,7 @@
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import InstructionText from './InstructionText'
 import { extractBashScript } from './utils'
 
@@ -13,6 +13,11 @@ import {
   FaInfoCircle,
   FaRegClipboard,
 } from 'react-icons/fa'
+import { Spinner } from '../ui/spinner'
+
+enum TaskStatus {
+  Done = 'Task is done',
+}
 
 const BashScriptGenerator = () => {
   const [query, setQuery] = useState('')
@@ -28,6 +33,20 @@ const BashScriptGenerator = () => {
   const [showLog, setShowLog] = useState(true)
   const [shouldExecuteBashScript, setShouldExecuteBashScript] =
     useState(!autoRun)
+  const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    if (
+      query.length > 0 &&
+      countAction > 0 &&
+      output !== TaskStatus.Done &&
+      !breakAll
+    ) {
+      setIsLoading(true)
+      return
+    }
+    setIsLoading(false)
+  }, [query, countAction, output, breakAll])
 
   const runBashScript = useCallback(
     async (directBashScript?: string, message?: string) => {
@@ -91,8 +110,8 @@ const BashScriptGenerator = () => {
         setOutput('Please enter a query')
         return
       }
-      if (tempPrompt.includes('Task is done')) {
-        setOutput('Task is done')
+      if (tempPrompt.includes(TaskStatus.Done)) {
+        setOutput(TaskStatus.Done)
         return
       }
       console.log({ chooseQuery })
@@ -107,11 +126,11 @@ const BashScriptGenerator = () => {
         const data = await response.json()
         if (
           data.output.toLowerCase().includes('thought: task is done') ||
-          data.output.toLowerCase().includes('task is done') ||
+          data.output.toLowerCase().includes(TaskStatus.Done) ||
           data.output === ''
         ) {
-          console.log('Task is done')
-          setOutput('Task is done')
+          console.log(TaskStatus.Done)
+          setOutput(TaskStatus.Done)
           setTempPrompt(`${chooseQuery}${data.output}`)
           return
         }
@@ -170,6 +189,7 @@ const BashScriptGenerator = () => {
         className={`w-full ${autoRun ? `bg-green-500` : `bg-blue-500`}`}
       >
         Run AI {autoRun ? 'Auto' : ''}
+        {isLoading && <Spinner className="flex ml-1" />}
       </Button>
     )
 
