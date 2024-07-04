@@ -18,10 +18,10 @@ import MermaidDiagrams from '../MermaidDiagrams/MermaidDiagrams'
 import { Spinner } from '../ui/spinner'
 
 const DiagramState = {
-  runningAI: `${coreFunctionMermaid}\nclass F yellow`,
-  runningBashScript: `${coreFunctionMermaid}\nclass K yellow`,
-  finishedAI: `${coreFunctionMermaid}\nclass F green`,
-  finishedBashScript: `${coreFunctionMermaid}\nclass K green`,
+  aiRunning: `${coreFunctionMermaid}\nclass F yellow`,
+  aiProcessed: `${coreFunctionMermaid}\nclass F green`,
+  bashScriptRunning: `${coreFunctionMermaid}\nclass K yellow`,
+  bashScriptProcessed: `${coreFunctionMermaid}\nclass K green`,
 }
 
 enum TaskStatus {
@@ -37,11 +37,12 @@ const BashScriptGenerator = () => {
   const [tempPrompt, setTempPrompt] = useState('')
   const [isBreakAll, setIsBreakAll] = useState(false) // Break all actions flag for stopping all AI and bash script actions
   const [countAction, setCountAction] = useState(0)
-  const [autoRun, setAutoRun] = useState(true)
+  const [isAutoMode, setIsAutoMode] = useState(true)
   const [showLog, setShowLog] = useState(true)
   const [shouldExecuteBashScript, setShouldExecuteBashScript] =
-    useState(!autoRun)
+    useState(!isAutoMode)
   const [isLoading, setIsLoading] = useState(false)
+  const [shouldShowRunAiButton, setShouldShowRunAiButton] = useState(false)
 
   const runAIRef = useRef((directQuery?: string) => {})
 
@@ -75,7 +76,7 @@ const BashScriptGenerator = () => {
 
     console.log({ chooseQuery })
     setCountAction((prev) => prev + 1)
-    setDiagramState(DiagramState.runningAI)
+    setDiagramState(DiagramState.aiRunning)
     setIsLoading(true)
 
     try {
@@ -109,7 +110,7 @@ const BashScriptGenerator = () => {
         setShouldExecuteBashScript(true)
 
         // Auto-run bash script
-        if (autoRun) {
+        if (isAutoMode) {
           setOutput('Run bash script')
           runBashScript(bashScript, `${chooseQuery}${data.output}`)
         }
@@ -117,22 +118,10 @@ const BashScriptGenerator = () => {
     } catch (error: any) {
       setOutput('Error openai: ' + error.message)
     } finally {
-      setDiagramState(DiagramState.finishedAI)
+      setDiagramState(DiagramState.aiProcessed)
       setIsLoading(false)
     }
   }
-
-  // Set loading state
-  useEffect(() => {
-    if (
-      diagramState === DiagramState.runningAI ||
-      diagramState === DiagramState.runningBashScript
-    ) {
-      setIsLoading(true)
-      return
-    }
-    setIsLoading(false)
-  }, [diagramState])
 
   // Sticky action button on scroll event listener to show/hide the button
   useEffect(() => {
@@ -162,7 +151,10 @@ const BashScriptGenerator = () => {
 
       console.log({ directBashScript, bashScript })
       let chosenBashScript = directBashScript ? directBashScript : bashScript
-      setDiagramState(DiagramState.runningBashScript)
+
+      setDiagramState(DiagramState.bashScriptRunning)
+      setIsLoading(true)
+
       try {
         const response = await fetch('/api/runBash', {
           method: 'POST',
@@ -184,8 +176,8 @@ const BashScriptGenerator = () => {
             : 'Observation: No output'
 
         // Auto run next prompt
-        setOutput('AutoRun: ' + autoRun)
-        if (autoRun) {
+        setOutput('AutoRun: ' + isAutoMode)
+        if (isAutoMode) {
           setOutput('AutoRun: Run AI')
           runAIRef.current(`${message}${observation}\n`)
           console.log(`openai got: ${message}${observation}`)
@@ -200,10 +192,11 @@ const BashScriptGenerator = () => {
             `${prev}Observation: Error executing script: ${error.message}\n`
         )
       } finally {
-        setDiagramState(DiagramState.finishedBashScript)
+        setDiagramState(DiagramState.bashScriptProcessed)
+        setIsLoading(false)
       }
     },
-    [isBreakAll, bashScript, autoRun]
+    [isBreakAll, bashScript, isAutoMode]
   )
 
   const savePromptToFile = async () => {
@@ -228,15 +221,46 @@ const BashScriptGenerator = () => {
     }
   }
 
+  const onToggleAutoMode = () => {
+    setIsAutoMode((prev) => {
+      // Show the "Run AI" button when the user toggles the auto mode button in the middle of manual execution.
+      if (!prev) {
+        if (
+          diagramState === DiagramState.bashScriptProcessed ||
+          diagramState === DiagramState.aiProcessed
+        ) {
+          setShouldShowRunAiButton(true)
+        }
+      }
+      return !prev
+    })
+  }
+
   const renderActionButton = () => {
-    if (openAILog && autoRun) {
+    // Show the "Run AI" button when the user toggles the auto mode button in the middle of manual execution.
+    if (shouldShowRunAiButton) {
       return (
         <Button
           onClick={() => {
-            setIsBreakAll((prev) => !prev)
-            setOutput('Break All: ' + isBreakAll)
-            runBashScript(extractBashScript(openAILog), tempPrompt)
+            if (diagramState === DiagramState.bashScriptProcessed) {
+              runAIRef.current()
+            } else if (diagramState === DiagramState.aiProcessed) {
+              runBashScript(extractBashScript(openAILog), tempPrompt)
+            }
+            setShouldShowRunAiButton(false)
           }}
+          className={`w-full bg-green-500`}
+        >
+          Run AI (Auto)
+        </Button>
+      )
+    }
+
+    // Break all button
+    if (isAutoMode && diagramState !== '') {
+      return (
+        <Button
+          onClick={() => setIsBreakAll(!isBreakAll)}
           className={`w-full ${isBreakAll ? `bg-green-500` : `bg-red-500`}`}
         >
           {isBreakAll ? (
@@ -251,6 +275,7 @@ const BashScriptGenerator = () => {
       )
     }
 
+    // Run bash script button
     if (shouldExecuteBashScript) {
       return (
         <Button
@@ -269,10 +294,10 @@ const BashScriptGenerator = () => {
     return (
       <Button
         onClick={() => runAIRef.current()}
-        className={`w-full ${autoRun ? `bg-green-500` : `bg-blue-500`}`}
+        className={`w-full ${isAutoMode ? `bg-green-500` : `bg-blue-500`}`}
         disabled={isLoading}
       >
-        Run AI {autoRun ? '(Auto)' : ''}
+        Run AI {isAutoMode ? '(Auto)' : ''}
         {isLoading && <Spinner className="flex ml-1" />}
       </Button>
     )
@@ -317,12 +342,12 @@ const BashScriptGenerator = () => {
                   type="checkbox"
                   value=""
                   className="sr-only peer"
-                  onClick={() => setAutoRun((prev) => !prev)}
-                  defaultChecked={autoRun}
+                  onClick={onToggleAutoMode}
+                  defaultChecked={isAutoMode}
                 />
                 <div className="relative w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 peer-checked:after:translate-x-full rtl:peer-checked:after:-translat</div>e-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-600"></div>
                 <span className="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
-                  {autoRun ? 'Auto mode is on' : 'Auto mode is off'}
+                  {isAutoMode ? 'Auto mode is on' : 'Auto mode is off'}
                 </span>
               </label>
 
@@ -403,7 +428,7 @@ const BashScriptGenerator = () => {
       <div
         className={`fixed bottom-0 w-full ${showStickyActionButton ? '' : 'hidden'}`}
       >
-        <div className="my-8 float-right px-5">{renderActionButton()}</div>
+        <div className="my-8 float-right px-5 mx-4">{renderActionButton()}</div>
       </div>
     </>
   )
