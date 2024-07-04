@@ -87,13 +87,16 @@ const BashScriptGenerator = () => {
       })
       const data = await response.json()
       if (
-        data.output.toLowerCase().includes('thought: task is done') ||
-        data.output.toLowerCase().includes(TaskStatus.Done) ||
+        data.output
+          .toLowerCase()
+          .includes(`thought: ${TaskStatus.Done.toLowerCase()}`) ||
+        data.output.toLowerCase().includes(TaskStatus.Done.toLowerCase()) ||
         data.output === ''
       ) {
         console.log(TaskStatus.Done)
         setOutput(TaskStatus.Done)
         setTempPrompt(`${chooseQuery}${data.output}`)
+        setShouldShowRunAiButton(true)
         return
       }
       setTempPrompt(`${chooseQuery}${data.output}`)
