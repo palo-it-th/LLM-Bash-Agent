@@ -383,7 +383,9 @@ const BashScriptGenerator = () => {
           <InstructionText text={tempPrompt} />
         </Card>
 
-        <Card className="p-4 w-full overflow-y-auto whitespace-nowrap space-y-4">
+        <Card
+          className={`p-4 ${showLog ? 'w-full' : 'w-1/5'} overflow-y-auto whitespace-nowrap space-y-4`}
+        >
           <div className="flex">
             <h2 className="text-xl font-semibold mr-2">Log</h2>
             {showLog ? (
