@@ -1,11 +1,9 @@
-import { NextResponse } from 'next/server'
-import OpenAI from 'openai'
-import Anthropic from '@anthropic-ai/sdk'
 import Groq from 'groq-sdk'
+import { NextResponse } from 'next/server'
 import { systemPrompt } from './systemPrompt'
 
-const anthropic = new Anthropic()
-const openai = new OpenAI()
+// const anthropic = new Anthropic()
+// const openai = new OpenAI()
 
 const groq = new Groq()
 // const message = await anthropic.messages.create({
