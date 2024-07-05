@@ -1,0 +1,21 @@
+Instruction: Implement user authentication in a Next.js insurance app using JWT
+Here is the bash script generator for implementing user authentication in a Next.js insurance app using JWT:
+
+**Iteration 1**
+Thought: The task is started. Start at Home directory. And create a new directory with the name of the task.
+ActionType: Execute
+Action: ```bash
+mkdir -p $HOME/InsuranceAppAuth
+cd $HOME/InsuranceAppAuth
+```
+Observation: No output
+**Iteration 2**
+Thought: Initialize a new Next.js project in the created directory.
+ActionType: Execute
+Action: ```bash
+cd $HOME/InsuranceAppAuth
+npx create-next-app insurance-app
+cd insurance-app
+```
+
+Result: Failed because it's stuck at the last bash script execution.
