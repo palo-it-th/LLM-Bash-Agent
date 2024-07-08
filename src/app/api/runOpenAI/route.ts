@@ -1,32 +1,25 @@
-import Groq from 'groq-sdk'
 import { NextResponse } from 'next/server'
+import OpenAI from 'openai'
+import Groq from 'groq-sdk'
 import { systemPrompt } from './systemPrompt'
 
 // const anthropic = new Anthropic()
 // const openai = new OpenAI()
 
+// const openai = new OpenAI()
 const groq = new Groq()
-// const message = await anthropic.messages.create({
-//   max_tokens: 1024,
-//   messages: [{ role: 'user', content: 'Hello, Claude' }],
-//   model: 'claude-3-opus-20240229',
-// });
 
-// console.log(message.content);
-
-// const chatCompletion = await groq.chat.completions.create({
-//   messages: [{ role: 'user', content: 'Explain the importance of low latency LLMs' }],
-//   model: 'llama3-8b-8192',//llama3-70b-8192
-// });
-
-// console.log(chatCompletion.choices[0].message.content);
+enum ModelName {
+  GPT4O = 'gpt-4o',
+  Llama3 = 'llama3-70b-8192',
+}
 
 export async function POST(request: Request) {
   const { query } = await request.json()
+  let llm = groq //openai
   console.log({ query })
   try {
-    //openai|groq|antrhopic
-    const completion = await groq.chat.completions.create({
+    const completion = await llm.chat.completions.create({
       messages: [
         {
           role: 'system',
@@ -37,8 +30,7 @@ export async function POST(request: Request) {
           content: query,
         },
       ],
-      // model: "gpt-4o",
-      model: 'llama3-70b-8192',
+      model: ModelName.Llama3,
       temperature: 0.2,
       max_tokens: 8192,
       top_p: 0.2,
