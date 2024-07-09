@@ -59,15 +59,9 @@ const OneShot = () => {
         </div>
         {/* Input and Send Button */}
         <div className="mt-4 w-full flex items-center justify-center  ">
-          <input
-            type="text"
+          <textarea
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                handleSendMessage()
-              }
-            }}
             className="p-2 border-2 border-gray-300 rounded-lg flex-1"
             placeholder="Message AI"
           />
