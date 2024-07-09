@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import ReactMarkdown from 'react-markdown'
+
 import { Button } from '../ui/button'
 import { Spinner } from '../ui/spinner'
 import './chat.css'
@@ -51,7 +53,7 @@ const OneShot = () => {
               key={index}
               className={`message-bubble ${message.user === 'human' ? 'human-message bg-blue-200' : 'ai-message bg-green-200'} ${message.user === 'human' ? 'ml-auto' : 'mr-auto'}`}
             >
-              {message.text}
+              <ReactMarkdown>{message.text}</ReactMarkdown>
             </div>
           ))}
         </div>
