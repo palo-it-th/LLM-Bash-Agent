@@ -44,11 +44,13 @@ export const parseInstructionText = (text: string): InstructionStep[] => {
 
 export const extractBashScript = (answer: string) => {
   //If ```bash is found, extract the INSIDE bash script
-  if (answer?.includes('```bash')) {
+  if (answer?.includes('```bash') && answer?.includes('```')) {
     const bashScript = answer.split('```bash')[1].split('```')[0]
     //delete new line at the beginning and end
     return bashScript.trim()
   } else {
-    return answer
+    console.log('No bash script found')
+    console.error('extractBashScript error ...')
+    return ''
   }
 }

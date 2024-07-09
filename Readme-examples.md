@@ -1,5 +1,14 @@
 # Example prompts
 
+# Tested
+
+1. Say Hello with Current Time
+2. Open Google to search for Latest News and Take screenshot then do OCR and summarize in text file
+3. Set up local backend REST api /products and return 5 list of product
+4. Create json-server backend app that simulate a small insurance api
+
+# Not test yet
+
 ## Example query for Human Wishing to Write Bash Script
 
 1. "Do research about Langchain JS and summarize it"

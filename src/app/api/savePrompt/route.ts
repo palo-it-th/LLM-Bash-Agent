@@ -9,9 +9,10 @@ export async function POST(request: Request) {
   const fileName = prompt
     .replace('Instruction:', '')
     .trim()
-    .slice(0, 12)
+    .slice(0, prompt.length > 20 ? 20 : prompt.length)
     .replace(/[^a-zA-Z0-9]/g, '_')
-  const savedLocation = `./data/${fileName}_${new Date().toUTCString()}.txt`
+    .toLowerCase()
+  const savedLocation = `./data/${fileName}_${Date.now()}.txt`
 
   try {
     await saveToFile(savedLocation, prompt, 'text')
