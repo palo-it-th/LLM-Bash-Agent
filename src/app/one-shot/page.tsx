@@ -1,7 +1,7 @@
 import OneShot from '@/components/OneShot/OneShot'
 
-const MainPage = () => {
+const Page = () => {
   return <OneShot />
 }
 
-export default MainPage
+export default Page

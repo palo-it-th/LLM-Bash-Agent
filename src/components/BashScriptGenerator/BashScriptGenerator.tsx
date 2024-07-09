@@ -6,6 +6,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import InstructionText from './InstructionText'
 import { extractBashScript } from './utils'
 
+import MermaidDiagrams from '@/components/MermaidDiagrams/MermaidDiagrams'
+import { Spinner } from '@/components/ui/spinner'
 import { coreFunctionMermaid } from '@/config/mermaidConfig'
 import {
   FaEye,
@@ -14,8 +16,6 @@ import {
   FaInfoCircle,
   FaRegClipboard,
 } from 'react-icons/fa'
-import MermaidDiagrams from '../MermaidDiagrams/MermaidDiagrams'
-import { Spinner } from '../ui/spinner'
 
 const DiagramState = {
   aiRunning: `${coreFunctionMermaid}\nclass F yellow`,
