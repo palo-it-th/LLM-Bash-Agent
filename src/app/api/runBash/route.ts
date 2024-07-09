@@ -38,8 +38,8 @@ function expandPath(inputPath: string): string {
 }
 
 async function executeCommand(command: string): Promise<string> {
-  const parts = command.split('&&').map((part) => part.trim())
-
+  const parts = command.split('[&&/]').map((part) => part.trim())
+  console.log({ parts })
   let currentDir = process.cwd()
   let output = ''
 

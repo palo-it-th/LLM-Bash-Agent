@@ -6,8 +6,8 @@ import { systemPrompt } from './systemPrompt'
 // const anthropic = new Anthropic()
 // const openai = new OpenAI()
 
-// const openai = new OpenAI()
-const groq = new Groq()
+const openai = new OpenAI()
+// const groq = new Groq()
 
 enum ModelName {
   GPT4O = 'gpt-4o',
@@ -16,7 +16,7 @@ enum ModelName {
 
 export async function POST(request: Request) {
   const { query } = await request.json()
-  let llm = groq //openai groq
+  let llm = openai //openai groq
   console.log({ query })
   try {
     const completion = await llm.chat.completions.create({
@@ -30,10 +30,10 @@ export async function POST(request: Request) {
           content: query,
         },
       ],
-      model: ModelName.Llama3,
-      // model: ModelName.GPT4O,
+      // model: ModelName.Llama3,
+      model: ModelName.GPT4O,
       temperature: 0.2,
-      max_tokens: 500,
+      max_tokens: 3000,
       top_p: 0.2,
       frequency_penalty: 0,
       presence_penalty: 0,
