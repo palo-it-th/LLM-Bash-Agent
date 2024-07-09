@@ -20,14 +20,14 @@ const NavBar = () => {
               <div className="flex space-x-4">
                 <Link
                   href="/one-shot"
-                  className="px-3 py-2 font-medium hover:text-blue-500"
+                  className="px-3 py-2 font-medium hover:text-green-500"
                   aria-current="page"
                 >
                   One Shot
                 </Link>
                 <Link
                   href="/react"
-                  className="px-3 py-2 font-medium hover:text-blue-500"
+                  className="px-3 py-2 font-medium hover:text-green-500"
                   aria-current="page"
                 >
                   ReAct

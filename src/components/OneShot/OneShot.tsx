@@ -58,7 +58,7 @@ const OneShot = () => {
           ))}
         </div>
         {/* Input and Send Button */}
-        <div className="mt-4 w-full flex items-center justify-center  ">
+        <div className="mt-4 w-full flex justify-center items-end">
           <textarea
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
@@ -67,8 +67,8 @@ const OneShot = () => {
           />
           <Button
             onClick={handleSendMessage}
-            className="bg-blue-500 flex items-center justify-center ml-2"
-            disabled={isLoading}
+            className="bg-blue-500 items-center justify-center ml-2"
+            disabled={isLoading || inputMessage.trim() === ''}
           >
             Send
             {isLoading && <Spinner className="flex ml-1" />}
