@@ -44,7 +44,7 @@ const BashScriptGenerator = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [shouldShowRunAiButton, setShouldShowRunAiButton] = useState(false)
 
-  const runAIRef = useRef((directQuery?: string) => {})
+  const runAIRef = useRef((directQuery?: string, forceContinue?: boolean) => {})
 
   // Diagram
   const [diagramState, setDiagramState] = useState('')
@@ -52,7 +52,7 @@ const BashScriptGenerator = () => {
   const [showStickyActionButton, setShowStickyActionButton] = useState(false)
   const [lastScrollY, setLastScrollY] = useState(0)
 
-  runAIRef.current = async (directQuery?: string) => {
+  runAIRef.current = async (directQuery?: string, forceContinue?: boolean) => {
     let chooseQuery = directQuery ? directQuery : tempPrompt
     console.log({ isBreakAll: isStopped, countAction })
     // if (countAction > 25) {
@@ -61,7 +61,7 @@ const BashScriptGenerator = () => {
     //   setCountAction(0);
     //   return;
     // }
-    if (isStopped) {
+    if (isStopped && forceContinue === undefined) {
       return
     }
 
@@ -147,8 +147,12 @@ const BashScriptGenerator = () => {
   }, [lastScrollY])
 
   const runBashScript = useCallback(
-    async (directBashScript?: string, message?: string) => {
-      if (isStopped) {
+    async (
+      directBashScript?: string,
+      message?: string,
+      forceContinue?: boolean
+    ) => {
+      if (isStopped && forceContinue === undefined) {
         return
       }
 
@@ -202,6 +206,19 @@ const BashScriptGenerator = () => {
     [isStopped, bashScript, isAutoMode]
   )
 
+  const runAIOrBashScript = () => {
+    switch (diagramState) {
+      case DiagramState.bashScriptProcessed:
+        runAIRef.current(undefined, true)
+        break
+      case DiagramState.aiProcessed:
+        runBashScript(extractBashScript(openAILog), tempPrompt, true)
+        break
+      default:
+        break
+    }
+  }
+
   const savePromptToFile = async () => {
     try {
       const response = await fetch('/api/savePrompt', {
@@ -245,11 +262,7 @@ const BashScriptGenerator = () => {
       return (
         <Button
           onClick={() => {
-            if (diagramState === DiagramState.bashScriptProcessed) {
-              runAIRef.current()
-            } else if (diagramState === DiagramState.aiProcessed) {
-              runBashScript(extractBashScript(openAILog), tempPrompt)
-            }
+            runAIOrBashScript()
             setShouldShowRunAiButton(false)
           }}
           className={`w-full bg-green-500`}
@@ -263,7 +276,18 @@ const BashScriptGenerator = () => {
     if (isAutoMode && diagramState !== '') {
       return (
         <Button
-          onClick={() => setIsStopped(!isStopped)}
+          onClick={() =>
+            setIsStopped((prev) => {
+              // If the user clicks the button to resume the AI or bash script, run the AI or bash script.
+              if (prev) {
+                setOutput('Resuming...')
+                runAIOrBashScript()
+              } else {
+                setOutput('Stopped')
+              }
+              return !prev
+            })
+          }
           className={`w-full ${isStopped ? `bg-green-500` : `bg-red-500`}`}
         >
           {isStopped ? (
