@@ -35,7 +35,7 @@ const BashScriptGenerator = () => {
   const [bashLog, setBashLog] = useState('')
   const [openAILog, setOpenAILog] = useState('')
   const [tempPrompt, setTempPrompt] = useState('')
-  const [isBreakAll, setIsBreakAll] = useState(false) // Break all actions flag for stopping all AI and bash script actions
+  const [isStopped, setIsStopped] = useState(false) // Stop actions flag for stopping all AI and bash script actions
   const [countAction, setCountAction] = useState(0)
   const [isAutoMode, setIsAutoMode] = useState(true)
   const [showLog, setShowLog] = useState(true)
@@ -54,14 +54,14 @@ const BashScriptGenerator = () => {
 
   runAIRef.current = async (directQuery?: string) => {
     let chooseQuery = directQuery ? directQuery : tempPrompt
-    console.log({ isBreakAll, countAction })
+    console.log({ isBreakAll: isStopped, countAction })
     // if (countAction > 25) {
     //   setOutput("Over limit 20");
     //   breakAllRef.current = true;
     //   setCountAction(0);
     //   return;
     // }
-    if (isBreakAll) {
+    if (isStopped) {
       return
     }
 
@@ -148,7 +148,7 @@ const BashScriptGenerator = () => {
 
   const runBashScript = useCallback(
     async (directBashScript?: string, message?: string) => {
-      if (isBreakAll) {
+      if (isStopped) {
         return
       }
 
@@ -199,7 +199,7 @@ const BashScriptGenerator = () => {
         setIsLoading(false)
       }
     },
-    [isBreakAll, bashScript, isAutoMode]
+    [isStopped, bashScript, isAutoMode]
   )
 
   const savePromptToFile = async () => {
@@ -259,18 +259,18 @@ const BashScriptGenerator = () => {
       )
     }
 
-    // Break all button
+    // Resume/Stop button
     if (isAutoMode && diagramState !== '') {
       return (
         <Button
-          onClick={() => setIsBreakAll(!isBreakAll)}
-          className={`w-full ${isBreakAll ? `bg-green-500` : `bg-red-500`}`}
+          onClick={() => setIsStopped(!isStopped)}
+          className={`w-full ${isStopped ? `bg-green-500` : `bg-red-500`}`}
         >
-          {isBreakAll ? (
+          {isStopped ? (
             'Resume'
           ) : (
             <>
-              Break All
+              Stop
               <Spinner className="flex ml-1" />
             </>
           )}
