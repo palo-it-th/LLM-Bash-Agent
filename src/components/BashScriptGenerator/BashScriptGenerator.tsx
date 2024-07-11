@@ -54,7 +54,7 @@ const BashScriptGenerator = () => {
 
   runAIRef.current = async (directQuery?: string, forceContinue?: boolean) => {
     let chooseQuery = directQuery ? directQuery : tempPrompt
-    console.log({ isBreakAll: isStopped, countAction })
+    console.log({ isStopped, countAction })
     // if (countAction > 25) {
     //   setOutput("Over limit 20");
     //   breakAllRef.current = true;
