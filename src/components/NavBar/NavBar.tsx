@@ -1,7 +1,12 @@
+'use client'
+
 import Image from 'next/image'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 const NavBar = () => {
+  const pathName = usePathname()
+
   return (
     <nav className="">
       <div className="px-4">
@@ -20,14 +25,14 @@ const NavBar = () => {
               <div className="flex space-x-4">
                 <Link
                   href="/one-shot"
-                  className="px-3 py-2 font-medium hover:text-green-500"
+                  className={`px-3 py-2 font-medium ${pathName === '/' || pathName === '/one-shot' ? 'text-[#F57D2B]' : null}  hover:text-green-500`}
                   aria-current="page"
                 >
                   One Shot
                 </Link>
                 <Link
                   href="/react"
-                  className="px-3 py-2 font-medium hover:text-green-500"
+                  className={`px-3 py-2 font-medium ${pathName === '/react' ? 'text-[#F57D2B]' : null}  hover:text-green-500`}
                   aria-current="page"
                 >
                   ReAct
