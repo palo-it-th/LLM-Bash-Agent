@@ -10,6 +10,10 @@ export async function POST(request: Request) {
     //openai|groq|antrhopic
     const completion = await groq.chat.completions.create({
       messages: [
+        // {
+        //   role:'system',
+        //   content: 'Switch vocal and vowel letters return in JSON'
+        // },
         {
           role: 'user',
           content: prompt,
