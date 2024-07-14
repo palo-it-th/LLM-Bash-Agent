@@ -10,4 +10,5 @@ Human: ให้ extract ข้อมูลจากข้อความแล�
 
 </div>
 
-Text:
+Input: job description
+Input:
