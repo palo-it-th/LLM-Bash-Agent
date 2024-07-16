@@ -1,0 +1,21 @@
+Instruction: Create nextjs typescript project name HelloNextJS
+Thought: The task is started. Start at Home directory. And create a new directory with the name of the task.
+ActionType: Execute
+Action: ```bash
+cd $HOME [&&/] mkdir -p $HOME/HelloNextJS
+```
+Observation: Changed directory to: /Users/sarinsuriyakoon
+Executed in /Users/sarinsuriyakoon:
+Thought: To validate the task, you must check if the directory is created.
+ActionType: Validate
+Action: ```bash
+cd $HOME [&&/] ls -l $HOME/HelloNextJS
+```
+Observation: Changed directory to: /Users/sarinsuriyakoon
+Executed in /Users/sarinsuriyakoon:
+total 0
+Thought: The directory is created successfully. Now, initialize a new Next.js project with TypeScript in the HelloNextJS directory.
+ActionType: Execute
+Action: ```bash
+cd $HOME/HelloNextJS [&&/] npx create-next-app@latest --ts
+```

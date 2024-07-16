@@ -9,8 +9,6 @@ Action: bash commands
 Observation: result of the bash command
 ... (this Thought/Action/Observation can repeat N times)
 Thought: Task is done
-
-Instruction:
 ```
 
 ### Example Instruction:

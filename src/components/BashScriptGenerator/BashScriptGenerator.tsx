@@ -97,6 +97,9 @@ const BashScriptGenerator = () => {
         setOutput(TaskStatus.Done)
         setTempPrompt(`${chooseQuery}${data.output}`)
         setShouldShowRunAiButton(true)
+        //delay 1s
+        await new Promise((resolve) => setTimeout(resolve, 100))
+        savePromptToFile()
         return
       }
       setTempPrompt(`${chooseQuery}${data.output}`)

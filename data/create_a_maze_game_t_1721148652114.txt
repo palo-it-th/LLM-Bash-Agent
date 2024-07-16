@@ -1,0 +1,113 @@
+Instruction: Create a maze game
+Thought: The task is started. Start at Home directory. And create a new directory with the name of the task "MazeGame".
+ActionType: Execute
+Action: ```bash
+cd $HOME [&&/] mkdir -p $HOME/MazeGame
+```
+Observation: Changed directory to: /Users/sarinsuriyakoon
+Executed in /Users/sarinsuriyakoon:
+Thought: To validate the task, I must check if the "MazeGame" directory is created.
+ActionType: Validate
+Action: ```bash
+cd $HOME [&&/] ls -l $HOME/MazeGame
+```
+Observation: Changed directory to: /Users/sarinsuriyakoon
+Executed in /Users/sarinsuriyakoon:
+total 0
+drwxr-xr-x  10 sarinsuriyakoon  staff  320 Jul  9 23:22 maze-game
+Thought: The "MazeGame" directory is successfully created. Next, I will create a basic maze game script file named "maze_game.sh" inside the "MazeGame" directory.
+ActionType: Execute
+Action: ```bash
+cd $HOME/MazeGame [&&/] cat << 'EOF' > maze_game.sh
+#!/bin/bash
+
+# Simple Maze Game
+# Use W, A, S, D to move up, left, down, right respectively
+
+# Initial position
+x=1
+y=1
+
+# Maze layout (0 = path, 1 = wall)
+maze=(
+  "1111111"
+  "1000001"
+  "1011101"
+  "1000101"
+  "1110101"
+  "1000001"
+  "1111111"
+)
+
+# Function to display the maze
+display_maze() {
+  clear
+  for ((i=0; i<${#maze[@]}; i++)); do
+    for ((j=0; j<${#maze[i]}; j++)); do
+      if [[ $i -eq $x && $j -eq $y ]]; then
+        echo -n "P"
+      else
+        echo -n "${maze[i]:j:1}"
+      fi
+    done
+    echo
+  done
+}
+
+# Function to move the player
+move_player() {
+  case $1 in
+    w) ((x > 0 && ${maze[x-1]:y:1} == 0)) && ((x--)) ;;
+    s) ((x < ${#maze[@]}-1 && ${maze[x+1]:y:1} == 0)) && ((x++)) ;;
+    a) ((y > 0 && ${maze[x]:y-1:1} == 0)) && ((y--)) ;;
+    d) ((y < ${#maze[x]}-1 && ${maze[x]:y+1:1} == 0)) && ((y++)) ;;
+  esac
+}
+
+# Main game loop
+while true; do
+  display_maze
+  read -n 1 -s move
+  move_player $move
+done
+EOF
+```
+Observation: Changed directory to: /Users/sarinsuriyakoon/MazeGame
+Executed in /Users/sarinsuriyakoon/MazeGame:
+Thought: The "maze_game.sh" script file has been created. Next, I will validate the creation of the "maze_game.sh" file by listing the contents of the "MazeGame" directory.
+ActionType: Validate
+Action: ```bash
+cd $HOME/MazeGame [&&/] ls -l $HOME/MazeGame
+```
+Observation: Changed directory to: /Users/sarinsuriyakoon/MazeGame
+Executed in /Users/sarinsuriyakoon/MazeGame:
+total 8
+drwxr-xr-x  10 sarinsuriyakoon  staff  320 Jul  9 23:22 maze-game
+-rw-r--r--   1 sarinsuriyakoon  staff  938 Jul 16 23:50 maze_game.sh
+Thought: The "maze_game.sh" script file has been successfully created. Next, I will make the "maze_game.sh" script executable.
+ActionType: Execute
+Action: ```bash
+cd $HOME/MazeGame [&&/] chmod +x maze_game.sh
+```
+Observation: Changed directory to: /Users/sarinsuriyakoon/MazeGame
+Executed in /Users/sarinsuriyakoon/MazeGame:
+Thought: The "maze_game.sh" script has been made executable. Next, I will validate that the script is indeed executable by checking its permissions.
+ActionType: Validate
+Action: ```bash
+cd $HOME/MazeGame [&&/] ls -l maze_game.sh
+```
+Observation: Changed directory to: /Users/sarinsuriyakoon/MazeGame
+Executed in /Users/sarinsuriyakoon/MazeGame:
+-rwxr-xr-x  1 sarinsuriyakoon  staff  938 Jul 16 23:50 maze_game.sh
+Thought: The "maze_game.sh" script is executable. Next, I will run the "maze_game.sh" script to ensure it works as expected.
+ActionType: Execute
+Action: ```bash
+cd $HOME/MazeGame [&&/] ./maze_game.sh &
+```
+Observation: Changed directory to: /Users/sarinsuriyakoon/MazeGame
+Started background process: ./maze_game.sh in /Users/sarinsuriyakoon/MazeGame
+Thought: The "maze_game.sh" script has been started in the background. To ensure it is running correctly, I will check the list of running processes to see if the script is active.
+ActionType: Validate
+Action: ```bash
+cd $HOME/MazeGame [&&/] ps aux | grep maze_game.sh
+```

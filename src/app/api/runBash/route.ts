@@ -49,6 +49,7 @@ async function executeCommand(command: string): Promise<string> {
       const newDir = expandPath(part.slice(3).trim())
       currentDir = path.resolve(currentDir, newDir)
       output += `Changed directory to: ${currentDir}\n`
+      console.log(`Changed directory to: ${currentDir}\n`)
     } else if (part.endsWith(' &')) {
       // Handle background processes
       const cmd = part.slice(0, -2).trim()
@@ -60,11 +61,16 @@ async function executeCommand(command: string): Promise<string> {
       })
       childProcess.unref()
       output += `Started background process: ${cmd} in ${currentDir}\n`
+      console.log(`Started background process: ${cmd} in ${currentDir}\n`)
     } else {
       // Execute other commands
       try {
+        console.log(
+          `Starting......Executed in ${currentDir} with command: ${part}\n`
+        )
         const { stdout, stderr } = await execAsync(part, { cwd: currentDir })
         output += `Executed in ${currentDir}:\n${stdout}${stderr}\n`
+        console.log(`Executed in ${currentDir}:\n${stdout}${stderr}\n`)
       } catch (error: any) {
         output += `Error executing command in ${currentDir}: ${error.message}\n`
       }

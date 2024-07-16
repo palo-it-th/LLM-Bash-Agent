@@ -1,0 +1,57 @@
+Instruction: Create 10 minutes timer alarm
+Thought: The task is started. Start at Home directory. And create a new directory with the name "TimerTask".
+ActionType: Execute
+Action: ```bash
+cd $HOME [&&/] mkdir -p $HOME/TimerTask
+```
+Observation: Changed directory to: /Users/sarinsuriyakoon
+Executed in /Users/sarinsuriyakoon:
+Thought: To validate the task, I must check if the directory "TimerTask" is created.
+ActionType: Validate
+Action: ```bash
+cd $HOME [&&/] ls -l $HOME/TimerTask
+```
+Observation: Changed directory to: /Users/sarinsuriyakoon
+Executed in /Users/sarinsuriyakoon:
+total 0
+Thought: The directory "TimerTask" is successfully created. Now, I will create a bash script inside this directory to set a 10-minute timer and play an alarm sound when the time is up.
+ActionType: Execute
+Action: ```bash
+cd $HOME/TimerTask [&&/] cat << 'EOF' > timer.sh
+#!/bin/bash
+sleep 600
+afplay /System/Library/Sounds/Glass.aiff
+EOF
+```
+Observation: Changed directory to: /Users/sarinsuriyakoon/TimerTask
+Executed in /Users/sarinsuriyakoon/TimerTask:
+Thought: The bash script "timer.sh" has been created. Now, I need to validate that the script has been created and contains the correct content.
+ActionType: Validate
+Action: ```bash
+cd $HOME/TimerTask [&&/] cat timer.sh
+```
+Observation: Changed directory to: /Users/sarinsuriyakoon/TimerTask
+Executed in /Users/sarinsuriyakoon/TimerTask:
+#!/bin/bash
+sleep 600
+afplay /System/Library/Sounds/Glass.aiff
+Thought: The script "timer.sh" has been created and contains the correct content. Now, I will make the script executable.
+ActionType: Execute
+Action: ```bash
+cd $HOME/TimerTask [&&/] chmod +x timer.sh
+```
+Observation: Changed directory to: /Users/sarinsuriyakoon/TimerTask
+Executed in /Users/sarinsuriyakoon/TimerTask:
+Thought: The script "timer.sh" has been made executable. Now, I need to validate that the script has the executable permission.
+ActionType: Validate
+Action: ```bash
+cd $HOME/TimerTask [&&/] ls -l timer.sh
+```
+Observation: Changed directory to: /Users/sarinsuriyakoon/TimerTask
+Executed in /Users/sarinsuriyakoon/TimerTask:
+-rwxr-xr-x  1 sarinsuriyakoon  staff  63 Jul 17 00:18 timer.sh
+Thought: The script "timer.sh" has the executable permission. Now, I will execute the script to start the 10-minute timer and play the alarm sound when the time is up.
+ActionType: Execute
+Action: ```bash
+cd $HOME/TimerTask [&&/] ./timer.sh &
+```
