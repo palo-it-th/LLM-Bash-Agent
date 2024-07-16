@@ -4,7 +4,7 @@
 
 1. Say Hello with Current Time
 2. Open Google to search for Latest News and Take screenshot then do OCR and summarize in text file
-3. Set up local backend REST api /products and return 5 list of product
+3. Set up a local backend REST API for /products and return a list of 5 products.
 4. Create json-server backend app that simulate a small insurance api
 5. Create React frontend app which is a maze game where the user can move a character around the maze using the arrow keys, include 5 mazes of varying difficulty
 
