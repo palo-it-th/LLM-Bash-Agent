@@ -14,8 +14,8 @@ import {
   FaEyeSlash,
   FaFileDownload,
   FaInfoCircle,
-  FaRegClipboard,
   FaMagic,
+  FaRegClipboard,
 } from 'react-icons/fa'
 
 const DiagramState = {
@@ -495,7 +495,9 @@ const BashScriptGenerator = () => {
       <div
         className={`fixed bottom-0 w-full ${showStickyActionButton ? '' : 'hidden'}`}
       >
-        <div className="my-8 float-right px-5 mx-4">{renderActionButton()}</div>
+        <div className="my-8 float-right px-5 mx-4 space-y-2">
+          {renderActionButton()}
+        </div>
       </div>
     </>
   )
