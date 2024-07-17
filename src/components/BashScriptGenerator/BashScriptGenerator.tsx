@@ -38,7 +38,7 @@ const BashScriptGenerator = () => {
   const [tempPrompt, setTempPrompt] = useState('')
   const [isStopped, setIsStopped] = useState(false) // Stop actions flag for stopping all AI and bash script actions
   const [countAction, setCountAction] = useState(0)
-  const [isAutoMode, setIsAutoMode] = useState(true)
+  const [isAutoMode, setIsAutoMode] = useState(false)
   const [showLog, setShowLog] = useState(true)
   const [showFormattedPrompt, setShowFormattedPrompt] = useState(true)
   const [shouldExecuteBashScript, setShouldExecuteBashScript] =
