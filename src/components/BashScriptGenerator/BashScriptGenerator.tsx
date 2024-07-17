@@ -15,6 +15,7 @@ import {
   FaFileDownload,
   FaInfoCircle,
   FaRegClipboard,
+  FaMagic,
 } from 'react-icons/fa'
 
 const DiagramState = {
@@ -39,6 +40,7 @@ const BashScriptGenerator = () => {
   const [countAction, setCountAction] = useState(0)
   const [isAutoMode, setIsAutoMode] = useState(true)
   const [showLog, setShowLog] = useState(true)
+  const [showFormattedPrompt, setShowFormattedPrompt] = useState(true)
   const [shouldExecuteBashScript, setShouldExecuteBashScript] =
     useState(!isAutoMode)
   const [isLoading, setIsLoading] = useState(false)
@@ -55,12 +57,7 @@ const BashScriptGenerator = () => {
   runAIRef.current = async (directQuery?: string, forceContinue?: boolean) => {
     let chooseQuery = directQuery ? directQuery : tempPrompt
     console.log({ isStopped, countAction })
-    // if (countAction > 25) {
-    //   setOutput("Over limit 20");
-    //   breakAllRef.current = true;
-    //   setCountAction(0);
-    //   return;
-    // }
+
     if (isStopped && forceContinue === undefined) {
       return
     }
@@ -95,7 +92,7 @@ const BashScriptGenerator = () => {
       ) {
         console.log(TaskStatus.Done)
         setOutput(TaskStatus.Done)
-        setTempPrompt(`${chooseQuery}${data.output}`)
+        setTempPrompt(`${chooseQuery}\n${data.output}`)
         setShouldShowRunAiButton(true)
         //delay 1s
         await new Promise((resolve) => setTimeout(resolve, 100))
@@ -182,15 +179,15 @@ const BashScriptGenerator = () => {
 
         let observation =
           data.output.length > 0
-            ? `Observation: ${data.output?.trim()}`
-            : 'Observation: No output'
+            ? `\nObservation: ${data.output?.trim()}`
+            : '\nObservation: No output'
 
         // Auto run next prompt
         setOutput('AutoRun: ' + isAutoMode)
         if (isAutoMode) {
           setOutput('AutoRun: Run AI')
           runAIRef.current(`${message}${observation}\n`)
-          console.log(`openai got: ${message}${observation}`)
+          console.log(`openai got: ${message}${observation}\n`)
         }
 
         setTempPrompt((prev) => `${prev}${observation}\n`)
@@ -199,7 +196,7 @@ const BashScriptGenerator = () => {
         setOutput('Error executing script: ' + error.message)
         setTempPrompt(
           (prev) =>
-            `${prev}Observation: Error executing script: ${error.message}\n`
+            `${prev}\nObservation: Error executing script: ${error.message}\n`
         )
       } finally {
         setDiagramState(DiagramState.bashScriptProcessed)
@@ -260,6 +257,18 @@ const BashScriptGenerator = () => {
   }
 
   const renderActionButton = () => {
+    const buttons = [
+      <Button
+        id="run-ai-button"
+        key="run-ai-button"
+        onClick={() => runAIRef.current()}
+        className={`w-full ${isAutoMode ? `bg-green-500` : `bg-blue-500`}`}
+        disabled={isLoading}
+      >
+        Run AI {isAutoMode ? '(Auto)' : ''}
+        {isLoading && <Spinner className="flex ml-1" />}
+      </Button>,
+    ]
     // Show the "Run AI" button when the user toggles the auto mode button in the middle of manual execution.
     if (shouldShowRunAiButton) {
       return (
@@ -277,7 +286,7 @@ const BashScriptGenerator = () => {
 
     // Resume/Stop button
     if (isAutoMode && diagramState !== '') {
-      return (
+      buttons.push(
         <Button
           onClick={() =>
             setIsStopped((prev) => {
@@ -306,13 +315,15 @@ const BashScriptGenerator = () => {
     }
 
     // Run bash script button
-    if (shouldExecuteBashScript) {
-      return (
+    //shouldExecuteBashScript
+    //isAutoMode
+    if (!isAutoMode) {
+      buttons.push(
         <Button
           onClick={() =>
             runBashScript(extractBashScript(openAILog), tempPrompt)
           }
-          className="w-full bg-blue-500"
+          className="w-full bg-blue-800"
           disabled={isLoading}
         >
           Run Bash Script
@@ -322,14 +333,15 @@ const BashScriptGenerator = () => {
     }
 
     return (
-      <Button
-        onClick={() => runAIRef.current()}
-        className={`w-full ${isAutoMode ? `bg-green-500` : `bg-blue-500`}`}
-        disabled={isLoading}
-      >
-        Run AI {isAutoMode ? '(Auto)' : ''}
-        {isLoading && <Spinner className="flex ml-1" />}
-      </Button>
+      // <Button
+      //   onClick={() => runAIRef.current()}
+      //   className={`w-full ${isAutoMode ? `bg-green-500` : `bg-blue-500`}`}
+      //   disabled={isLoading}
+      // >
+      //   Run AI {isAutoMode ? '(Auto)' : ''}
+      //   {isLoading && <Spinner className="flex ml-1" />}
+      // </Button>
+      <>{buttons}</>
     )
   }
 
@@ -393,8 +405,10 @@ const BashScriptGenerator = () => {
           </div>
         </Card>
         <Card className="p-4 w-full overflow-y-auto whitespace-nowrap">
-          <div className="flex">
-            <h3 className="text-xl font-semibold mr-2">Formatted Prompt Log</h3>
+          <div className="flex mb-4">
+            <h3 className="text-xl font-semibold mr-2 ">
+              {showFormattedPrompt ? `Formatted` : 'Raw'} Prompt Log
+            </h3>
 
             {tempPrompt && (
               <>
@@ -406,8 +420,29 @@ const BashScriptGenerator = () => {
                 </button>
               </>
             )}
+            {showFormattedPrompt ? (
+              <button onClick={() => setShowFormattedPrompt(false)}>
+                <FaMagic className="m-1" />
+              </button>
+            ) : (
+              <button onClick={() => setShowFormattedPrompt(true)}>
+                <FaMagic className="m-1" />
+              </button>
+            )}
           </div>
-          <InstructionText text={tempPrompt} />
+          {showFormattedPrompt ? (
+            <InstructionText text={tempPrompt} />
+          ) : (
+            <Textarea
+              placeholder="Temp prompt"
+              value={tempPrompt}
+              onChange={(e) => {
+                setTempPrompt(e.target.value)
+              }}
+              className="mb-2 h-full"
+              disabled={isLoading}
+            />
+          )}
         </Card>
 
         <Card
