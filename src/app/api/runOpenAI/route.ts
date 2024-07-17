@@ -10,6 +10,11 @@ enum ModelName {
   GPT4O = 'gpt-4o',
   Llama3 = 'llama3-70b-8192',
 }
+//create_react_chatbot_1721146210338.txt
+async function readFileFromDataFolder(fileName: string) {
+  const data = await fetch(`data/${fileName}`)
+  return data.text()
+}
 
 export async function POST(request: Request) {
   const { query } = await request.json()
