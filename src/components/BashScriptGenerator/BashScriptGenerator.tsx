@@ -41,8 +41,6 @@ const BashScriptGenerator = () => {
   const [isAutoMode, setIsAutoMode] = useState(false)
   const [showLog, setShowLog] = useState(true)
   const [showFormattedPrompt, setShowFormattedPrompt] = useState(true)
-  const [shouldExecuteBashScript, setShouldExecuteBashScript] =
-    useState(!isAutoMode)
   const [isLoading, setIsLoading] = useState(false)
 
   const runAIRef = useRef((directQuery?: string) => {})
@@ -107,9 +105,6 @@ const BashScriptGenerator = () => {
       } else {
         setOutput('Bash script generated')
         setBashScript(bashScript)
-        // Wait after setting bash script run bash script
-
-        setShouldExecuteBashScript(true)
 
         // Auto-run bash script
         if (isAutoMode) {
@@ -189,7 +184,6 @@ const BashScriptGenerator = () => {
         }
 
         setTempPrompt((prev) => `${prev}${observation}\n`)
-        setShouldExecuteBashScript(false)
       } catch (error: any) {
         setOutput('Error executing script: ' + error.message)
         setTempPrompt(
@@ -205,20 +199,6 @@ const BashScriptGenerator = () => {
     },
     [isStopped, bashScript, isAutoMode]
   )
-
-  // TODO: to be removed
-  /* const runAIOrBashScript = () => {
-    switch (diagramState) {
-      case DiagramState.bashScriptProcessed:
-        runAIRef.current(undefined, true)
-        break
-      case DiagramState.aiProcessed:
-        runBashScript(extractBashScript(openAILog), tempPrompt, true)
-        break
-      default:
-        break
-    }
-  } */
 
   const savePromptToFile = async () => {
     try {
@@ -274,8 +254,6 @@ const BashScriptGenerator = () => {
     }
 
     // Run bash script button
-    //shouldExecuteBashScript
-    //isAutoMode
     if (!isAutoMode) {
       buttons.push(
         <Button
@@ -292,17 +270,7 @@ const BashScriptGenerator = () => {
       )
     }
 
-    return (
-      // <Button
-      //   onClick={() => runAIRef.current()}
-      //   className={`w-full ${isAutoMode ? `bg-green-500` : `bg-blue-500`}`}
-      //   disabled={isLoading}
-      // >
-      //   Run AI {isAutoMode ? '(Auto)' : ''}
-      //   {isLoading && <Spinner className="flex ml-1" />}
-      // </Button>
-      <>{buttons}</>
-    )
+    return <>{buttons}</>
   }
 
   return (
