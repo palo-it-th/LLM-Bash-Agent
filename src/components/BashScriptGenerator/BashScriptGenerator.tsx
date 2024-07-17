@@ -44,9 +44,8 @@ const BashScriptGenerator = () => {
   const [shouldExecuteBashScript, setShouldExecuteBashScript] =
     useState(!isAutoMode)
   const [isLoading, setIsLoading] = useState(false)
-  const [shouldShowRunAiButton, setShouldShowRunAiButton] = useState(false)
 
-  const runAIRef = useRef((directQuery?: string, forceContinue?: boolean) => {})
+  const runAIRef = useRef((directQuery?: string) => {})
 
   // Diagram
   const [diagramState, setDiagramState] = useState('')
@@ -54,11 +53,12 @@ const BashScriptGenerator = () => {
   const [showStickyActionButton, setShowStickyActionButton] = useState(false)
   const [lastScrollY, setLastScrollY] = useState(0)
 
-  runAIRef.current = async (directQuery?: string, forceContinue?: boolean) => {
+  runAIRef.current = async (directQuery?: string) => {
     let chooseQuery = directQuery ? directQuery : tempPrompt
     console.log({ isStopped, countAction })
 
-    if (isStopped && forceContinue === undefined) {
+    if (isStopped) {
+      setIsLoading(false)
       return
     }
 
@@ -93,7 +93,6 @@ const BashScriptGenerator = () => {
         console.log(TaskStatus.Done)
         setOutput(TaskStatus.Done)
         setTempPrompt(`${chooseQuery}\n${data.output}`)
-        setShouldShowRunAiButton(true)
         //delay 1s
         await new Promise((resolve) => setTimeout(resolve, 100))
         savePromptToFile()
@@ -122,7 +121,9 @@ const BashScriptGenerator = () => {
       setOutput('Error openai: ' + error.message)
     } finally {
       setDiagramState(DiagramState.aiProcessed)
-      setIsLoading(false)
+      if (!isAutoMode) {
+        setIsLoading(false)
+      }
     }
   }
 
@@ -147,12 +148,9 @@ const BashScriptGenerator = () => {
   }, [lastScrollY])
 
   const runBashScript = useCallback(
-    async (
-      directBashScript?: string,
-      message?: string,
-      forceContinue?: boolean
-    ) => {
-      if (isStopped && forceContinue === undefined) {
+    async (directBashScript?: string, message?: string) => {
+      if (isStopped) {
+        setIsLoading(false)
         return
       }
 
@@ -200,13 +198,16 @@ const BashScriptGenerator = () => {
         )
       } finally {
         setDiagramState(DiagramState.bashScriptProcessed)
-        setIsLoading(false)
+        if (!isAutoMode) {
+          setIsLoading(false)
+        }
       }
     },
     [isStopped, bashScript, isAutoMode]
   )
 
-  const runAIOrBashScript = () => {
+  // TODO: to be removed
+  /* const runAIOrBashScript = () => {
     switch (diagramState) {
       case DiagramState.bashScriptProcessed:
         runAIRef.current(undefined, true)
@@ -217,7 +218,7 @@ const BashScriptGenerator = () => {
       default:
         break
     }
-  }
+  } */
 
   const savePromptToFile = async () => {
     try {
@@ -242,18 +243,7 @@ const BashScriptGenerator = () => {
   }
 
   const onToggleAutoMode = () => {
-    setIsAutoMode((prev) => {
-      // Show the "Run AI" button when the user toggles the auto mode button in the middle of manual execution.
-      if (!prev) {
-        if (
-          diagramState === DiagramState.bashScriptProcessed ||
-          diagramState === DiagramState.aiProcessed
-        ) {
-          setShouldShowRunAiButton(true)
-        }
-      }
-      return !prev
-    })
+    setIsAutoMode(!isAutoMode)
   }
 
   const renderActionButton = () => {
@@ -269,47 +259,16 @@ const BashScriptGenerator = () => {
         {isLoading && <Spinner className="flex ml-1" />}
       </Button>,
     ]
-    // Show the "Run AI" button when the user toggles the auto mode button in the middle of manual execution.
-    if (shouldShowRunAiButton) {
-      return (
-        <Button
-          onClick={() => {
-            runAIOrBashScript()
-            setShouldShowRunAiButton(false)
-          }}
-          className={`w-full bg-green-500`}
-        >
-          Run AI (Auto)
-        </Button>
-      )
-    }
 
     // Resume/Stop button
     if (isAutoMode && diagramState !== '') {
       buttons.push(
         <Button
-          onClick={() =>
-            setIsStopped((prev) => {
-              // If the user clicks the button to resume the AI or bash script, run the AI or bash script.
-              if (prev) {
-                setOutput('Resuming...')
-                runAIOrBashScript()
-              } else {
-                setOutput('Stopped')
-              }
-              return !prev
-            })
-          }
-          className={`w-full ${isStopped ? `bg-green-500` : `bg-red-500`}`}
+          key={`stop-button`}
+          onClick={() => setIsStopped(true)}
+          className={`w-full bg-red-500`}
         >
-          {isStopped ? (
-            'Resume'
-          ) : (
-            <>
-              Stop
-              <Spinner className="flex ml-1" />
-            </>
-          )}
+          Stop
         </Button>
       )
     }
@@ -320,6 +279,7 @@ const BashScriptGenerator = () => {
     if (!isAutoMode) {
       buttons.push(
         <Button
+          key="run-bash-script-button"
           onClick={() =>
             runBashScript(extractBashScript(openAILog), tempPrompt)
           }
