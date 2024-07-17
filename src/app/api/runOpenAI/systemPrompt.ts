@@ -29,10 +29,10 @@ export const systemPrompt = `You are a human wish to bash script generator for M
             ... (this Thought/Action/Observation can repeat N times)
             
             - When the task is started, you must start with 
-            Thought: The task is started. Start at Home directory. And create a new directory with the name of the task.
+            Thought: The task is started. Create a new directory with the name of the task.
             ActionType: Execute
             Action: \`\`\`bash
-            cd $HOME/TaskName [&&/] mkdir -p $HOME/TaskName
+            cd $HOME [&&/] mkdir -p $HOME/TaskName
             \`\`\`
             Observation: You are now at the Home directory. A new directory with the name of the task is created at [path/to/task/directory] 
             Thought: To validate the task, you must check if the directory is created
