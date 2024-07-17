@@ -66,6 +66,7 @@ const BashScriptGenerator = () => {
     }
     if (tempPrompt.includes(TaskStatus.Done)) {
       setOutput(TaskStatus.Done)
+      setIsLoading(false)
       return
     }
 
@@ -94,6 +95,7 @@ const BashScriptGenerator = () => {
         //delay 1s
         await new Promise((resolve) => setTimeout(resolve, 100))
         savePromptToFile()
+        setIsLoading(false)
         return
       }
       setTempPrompt(`${chooseQuery}${data.output}`)
