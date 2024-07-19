@@ -3,7 +3,7 @@ import OpenAI from 'openai'
 import Groq from 'groq-sdk'
 import { systemPrompt } from './systemPrompt'
 
-// const openai = new OpenAI()
+const openai = new OpenAI()
 const groq = new Groq()
 
 enum ModelName {
@@ -18,8 +18,8 @@ async function readFileFromDataFolder(fileName: string) {
 
 export async function POST(request: Request) {
   const { query } = await request.json()
-  // let llm = openai
-  let llm = groq
+  let llm = openai
+  // let llm = groq
   console.log({ query })
   try {
     const completion = await llm.chat.completions.create({
@@ -33,8 +33,8 @@ export async function POST(request: Request) {
           content: query,
         },
       ],
-      model: ModelName.Llama3,
-      // model: ModelName.GPT4O,
+      // model: ModelName.Llama3,
+      model: ModelName.GPT4O,
       temperature: 0.2,
       max_tokens: 3000,
       top_p: 0.2,
