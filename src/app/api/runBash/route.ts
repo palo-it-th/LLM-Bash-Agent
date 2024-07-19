@@ -52,6 +52,7 @@ async function executeCommand(command: string): Promise<string> {
       console.log(`Changed directory to: ${currentDir}\n`)
     } else if (part.endsWith(' &')) {
       // Handle background processes
+      console.log('Handling background process')
       const cmd = part.slice(0, -2).trim()
       const childProcess = spawn(cmd, [], {
         cwd: currentDir,
