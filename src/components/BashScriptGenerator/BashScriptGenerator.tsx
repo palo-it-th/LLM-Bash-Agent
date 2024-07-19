@@ -233,7 +233,10 @@ const BashScriptGenerator = () => {
       <Button
         id="run-ai-button"
         key="run-ai-button"
-        onClick={() => runAIRef.current()}
+        onClick={() => {
+          setIsStopped(false)
+          runAIRef.current()
+        }}
         className={`w-full ${isAutoMode ? `bg-green-500` : `bg-blue-500`}`}
         disabled={isLoading}
       >
