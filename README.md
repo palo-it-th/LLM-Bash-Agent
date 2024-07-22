@@ -1,3 +1,15 @@
+## LLM-Bash-Agent
+
+LLM Bash Agent is an AI Agent that uses Bash Script/Shell commands to automate your computer
+
+## Demo
+
+In this demo, we use LLM Bash Agent to generate the backend.
+
+https://github.com/user-attachments/assets/cd550321-9582-47b0-832b-59becd1d8054
+
+
+
 ## Getting Started
 
 Set up Key:
@@ -30,6 +42,8 @@ Open [http://localhost:3201](http://localhost:3201) with your browser to see the
 
 ## Diagrams
 
+### Core functinality
+
 ```mermaid
 graph TD
     A[Start] --> B[Set Query]
@@ -55,7 +69,8 @@ graph TD
     O -->|No| L
 ```
 
-    - [ ] AI Internal Functionality:
+### AI Functionality
+
 
 ```mermaid
 graph TD
