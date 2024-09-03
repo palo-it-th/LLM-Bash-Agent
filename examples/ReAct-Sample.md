@@ -1,12 +1,14 @@
 # ReAct Prompt Samples
 
 These are sample prompts for using ReAct on various topics. You could continue this by using this prompt.
-Note that this is a basic example to get to know how ReAct works. In real working environment, you must feed your own observation or the environment.
+
 ```
 Continue to write another topic other than Mind Reader and Bash Agent from this article
 Article: Copy and Paste below article in your AI Assistant
 ```
-Contents
+Note that this is a basic example to get to know how ReAct works. In a real working environment, you must feed your observation or the environment.
+
+## Contents
 1. [Mind Reader](#mind-reader)
 2. [Bash Agent](#bash-agent)
 3. [Math Solver](#math-solver)
