@@ -1,0 +1,10 @@
+Instruction: Extract content from a webpage and filter out all the HTML, make it into nice looking markdown file
+Thought: The task is started. Create a new directory with the name of the task.
+ActionType: Execute
+Action: 
+```bash
+cd $HOME [&&/] mkdir -p $HOME/ExtractWebContent
+```
+
+Observation: Changed directory to: /Users/sarinsuriyakoon
+Executed in /Users/sarinsuriyakoon:

@@ -7,6 +7,9 @@
 3. Set up a local backend REST API for /products and return a list of 5 products.
 4. Create json-server backend app that simulate a small insurance api
 5. Create React frontend app which is a maze game where the user can move a character around the maze using the arrow keys, include 5 mazes of varying difficulty
+6. Create a html extract script to extract all the links from a webpage
+7. Extract content from a webpage and filter out all the HTML, make it into nice looking markdown file
+8. Create a script that extract content from a webpage and filter out all the HTML, make it into nice looking markdown file
 
 # Not test yet
 

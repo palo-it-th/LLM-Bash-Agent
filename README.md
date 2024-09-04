@@ -8,8 +8,6 @@ In this demo, we use LLM Bash Agent to generate the backend.
 
 https://github.com/user-attachments/assets/cd550321-9582-47b0-832b-59becd1d8054
 
-
-
 ## Getting Started
 
 Set up Key:
@@ -71,7 +69,6 @@ graph TD
 
 ### AI Functionality
 
-
 ```mermaid
 graph TD
     A[Start] --> B[Set Query/Instruction]
@@ -110,4 +107,9 @@ graph TD
 
 ## Example prompts
 
-For example prompts, please refer to the [Readme-examples.md](Readme-examples.md) file.
+- For example prompts, please refer to the [Readme-examples.md](Readme-examples.md) file.
+- For ReAct prompts, please refer to the [ReAct.md](ReAct.md) file.
+
+## TODO
+
+- [ ] Add a button to open log file in Bash Script Magician
