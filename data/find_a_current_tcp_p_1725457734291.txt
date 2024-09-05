@@ -1,0 +1,25 @@
+Instruction: find a current tcp protocol port that is running
+Thought: The task is started. Create a new directory with the name of the task.
+ActionType: Execute
+Action: ```bash
+cd $HOME [&&/] mkdir -p $HOME/FindTCPPort
+```
+
+Observation: Changed directory to: /Users/sarinsuriyakoon
+Executed in /Users/sarinsuriyakoon:
+Thought: To validate the task, I must check if the directory is created.
+ActionType: Validate
+Action: ```bash
+cd $HOME/FindTCPPort [&&/] ls -l $HOME/FindTCPPort
+```
+
+
+Observation: Changed directory to: /Users/sarinsuriyakoon/FindTCPPort
+Executed in /Users/sarinsuriyakoon/FindTCPPort:
+total 0
+Thought: The directory is successfully created. Now, I need to find the current TCP protocol ports that are running.
+ActionType: Execute
+Action: ```bash
+cd $HOME/FindTCPPort [&&/] lsof -iTCP -sTCP:LISTEN
+```
+
