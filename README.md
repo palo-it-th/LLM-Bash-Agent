@@ -113,3 +113,8 @@ graph TD
 ## TODO
 
 - [ ] Add a button to open log file in Bash Script Magician
+- [ ] Add streaming options for Bash Script Magician
+- [ ] Add few shot prompt
+- [ ] Change one shot page to chat
+- [ ] Add chat history for chat page
+- [ ] Render markdown in chat page
