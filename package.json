@@ -15,16 +15,18 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "groq-sdk": "^0.5.0",
+    "llm-chunk": "^0.0.1",
     "lucide-react": "^0.396.0",
     "mermaid": "^10.9.1",
     "next": "14.2.4",
-    "openai": "^4.52.0",
+    "openai": "^4.65.0",
     "react": "^18",
     "react-dom": "^18",
     "react-icons": "^5.2.1",
     "react-markdown": "^9.0.1",
     "tailwind-merge": "^2.3.0",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@shadcn/ui": "^0.0.4",

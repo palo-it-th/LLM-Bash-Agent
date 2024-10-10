@@ -2,20 +2,23 @@ import { NextResponse } from 'next/server'
 
 import fs from 'fs/promises'
 import path from 'path'
+import { generateShortUUID } from '@/lib/utils'
 
 export async function POST(request: Request) {
-  const { prompt } = await request.json()
+  const { messages } = await request.json()
   // replace first "Instruction:" string and trim then take first 12 characters and replace all special string and space with underscore
-  const fileName = prompt
-    .replace('Instruction:', '')
-    .trim()
-    .slice(0, prompt.length > 20 ? 20 : prompt.length)
-    .replace(/[^a-zA-Z0-9]/g, '_')
-    .toLowerCase()
-  const savedLocation = `./data/${fileName}_${Date.now()}.txt`
+  const fileName = messages[1]
+    ? messages[1].content
+        .replace('Instruction:', '')
+        .trim()
+        .slice(0, messages[1].length > 20 ? 20 : messages[1].length)
+        .replace(/[^a-zA-Z0-9]/g, '_')
+        .toLowerCase()
+    : generateShortUUID()
+  const savedLocation = `./data/${fileName}_${Date.now()}.json`
 
   try {
-    await saveToFile(savedLocation, prompt, 'text')
+    await saveToFile(savedLocation, JSON.stringify(messages), 'json')
     return NextResponse.json({
       output: `Prompt saved successfully to ${savedLocation}`,
     })
@@ -23,7 +26,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ output: error.message }, { status: 500 })
   }
 }
-type FileMode = 'jsonl' | 'text'
+type FileMode = 'jsonl' | 'text' | 'json'
 const saveToFile = async (
   filePath: string = './data/output.txt',
   data: string,

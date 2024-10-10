@@ -1,82 +1,91 @@
 import { NextResponse } from 'next/server'
 import { exec, spawn } from 'child_process'
 import { promisify } from 'util'
+import * as fs from 'fs'
 import * as path from 'path'
-import * as os from 'os'
+import { generateShortUUID, getHomeDirectory } from '@/lib/utils'
+import { ExecutionSchemaType } from '../runOpenAI/route'
 
 // execute a shell command and return a promise
 // promisify is a utility function that converts a callback-based function to a promise-based function
 const execAsync = promisify(exec)
 
 export async function POST(request: Request) {
-  const { script } = await request.json()
-
-  // IMPORTANT: This is a basic safeguard. In a real-world scenario,
-  // you'd want much more robust security measures.
-  // const allowedCommands = ["echo", "ls", "pwd"];
-  // const firstCommand = script.trim().split(" ")[0];
-  // if (!allowedCommands.includes(firstCommand)) {
-  //   return NextResponse.json({ error: "Command not allowed" }, { status: 403 });
-  // }
+  const { script, mode } = await request.json()
 
   try {
-    const output = await executeCommand(script)
+    const workingDirectory = `${getHomeDirectory()}/workspace_react`
+    console.log(`Start runBash Command: ${script}`)
+    console.log(`Start runBash Mode: ${mode}`)
+    console.log(`Start runBash Directory: ${workingDirectory}`)
+    const output = await executeCommand(script, mode, workingDirectory)
     return NextResponse.json({ output })
   } catch (error: any) {
     return NextResponse.json({ output: error.message }, { status: 500 })
   }
 }
 
-function expandPath(inputPath: string): string {
-  if (inputPath.startsWith('~')) {
-    return path.join(os.homedir(), inputPath.slice(1))
+async function executeCommand(
+  command: string,
+  mode: string,
+  workingDirectory: string
+): Promise<string | undefined> {
+  const logFileName = `${generateShortUUID()}-executeCommand.log`
+  const dataDir = path.resolve(process.cwd(), 'logs')
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir)
   }
-  return inputPath.replace(
-    /\$([A-Za-z_][A-Za-z0-9_]*)/g,
-    (_, envVar) => process.env[envVar] || ''
-  )
-}
+  // console.log(
+  //   `Child Process Stream Logging output to ${path.resolve(
+  //     dataDir,
+  //     logFileName
+  //   )}`
+  // )
 
-async function executeCommand(command: string): Promise<string> {
-  const parts = command.split('[&&/]').map((part) => part.trim())
-  console.log({ parts })
-  let currentDir = process.cwd()
-  let output = ''
-
-  for (const part of parts) {
-    if (part.startsWith('cd ')) {
-      // Handle directory change with environment variable expansion
-      const newDir = expandPath(part.slice(3).trim())
-      currentDir = path.resolve(currentDir, newDir)
-      output += `Changed directory to: ${currentDir}\n`
-      console.log(`Changed directory to: ${currentDir}\n`)
-    } else if (part.endsWith(' &')) {
-      // Handle background processes
-      console.log('Handling background process')
-      const cmd = part.slice(0, -2).trim()
-      const childProcess = spawn(cmd, [], {
-        cwd: currentDir,
+  if (!workingDirectory) {
+    throw new Error('Working directory is required')
+  }
+  // Handle background processes
+  if (mode === 'spawn') {
+    const logStreamDir = path.resolve(dataDir, logFileName)
+    const logStream = fs.createWriteStream(logStreamDir, {
+      flags: 'a',
+    })
+    // if (mode) {
+    console.log('Handling background process')
+    try {
+      const childProcess = spawn(command.trim(), [], {
+        cwd: workingDirectory,
         shell: true,
         detached: true,
-        stdio: 'ignore',
+        stdio: ['ignore'],
       })
       childProcess.unref()
-      output += `Started background process: ${cmd} in ${currentDir}\n`
-      console.log(`Started background process: ${cmd} in ${currentDir}\n`)
-    } else {
-      // Execute other commands
-      try {
-        console.log(
-          `Starting......Executed in ${currentDir} with command: ${part}\n`
-        )
-        const { stdout, stderr } = await execAsync(part, { cwd: currentDir })
-        output += `Executed in ${currentDir}:\n${stdout}${stderr}\n`
-        console.log(`Executed in ${currentDir}:\n${stdout}${stderr}\n`)
-      } catch (error: any) {
-        output += `Error executing command in ${currentDir}: ${error.message}\n`
-      }
+      console.log(
+        `Started background process: ${command} in ${workingDirectory}\n`
+      )
+      return ''
+    } catch (error: any) {
+      console.error(
+        `Error spawning command in ${workingDirectory}: ${error.message}`
+      )
+      console.log(JSON.stringify(error))
+      return `Error spawning command in ${workingDirectory}: ${error.message}\n`
+    }
+  } else {
+    try {
+      console.log(`Starting......Executed ${command} in ${workingDirectory}\n`)
+      const { stdout, stderr } = await execAsync(command, {
+        cwd: workingDirectory,
+      })
+
+      console.log(`Executed in ${workingDirectory}:\n${stdout}${stderr}\n`)
+      return stdout + stderr
+    } catch (error: any) {
+      console.error(
+        `Error executing command in ${workingDirectory}: ${error.message}`
+      )
+      return `Error executing command in ${workingDirectory}: ${error.message}\n`
     }
   }
-
-  return output
 }

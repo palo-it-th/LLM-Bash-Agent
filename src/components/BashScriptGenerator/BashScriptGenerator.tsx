@@ -17,6 +17,10 @@ import {
   FaMagic,
   FaRegClipboard,
 } from 'react-icons/fa'
+import { ExecutionSchema, ExecutionSchemaType } from '@/app/api/runOpenAI/route'
+import { ChatCompletionMessageParam } from 'openai/resources/index.mjs'
+import { systemPromptJSON } from '@/app/api/runOpenAI/systemPromptJSON'
+import React from 'react'
 
 const DiagramState = {
   aiRunning: `${coreFunctionMermaid}\nclass F yellow`,
@@ -32,10 +36,22 @@ enum TaskStatus {
 const BashScriptGenerator = () => {
   const [query, setQuery] = useState('')
   const [bashScript, setBashScript] = useState('')
-  const [output, setOutput] = useState('')
-  const [bashLog, setBashLog] = useState('')
-  const [openAILog, setOpenAILog] = useState('')
-  const [tempPrompt, setTempPrompt] = useState('')
+  const [ChildProcessMode, setChildProcessMode] = useState('')
+  const [output, setOutput] = useState<string[]>([])
+  const [bashLog, setBashLog] = useState<string[]>([])
+  const [openAILog, setOpenAILog] = useState<ExecutionSchemaType[]>([])
+  const [exampleInstructions, setExampleInstructions] = useState<string[]>([
+    'Set up a local backend REST API for /products and return a list of 5 products.',
+    'Say Hello with Current Time',
+    'Create React frontend app which is a maze game where the user can move a character around the maze using the arrow keys, include 5 mazes of varying difficulty',
+    'Extract content from a webpage and filter out all the HTML, make it into nice looking markdown file',
+  ])
+  const [messages, setMessages] = useState<ChatCompletionMessageParam[]>([
+    {
+      role: 'system',
+      content: systemPromptJSON,
+    },
+  ])
   const [isStopped, setIsStopped] = useState(false) // Stop actions flag for stopping all AI and bash script actions
   const [countAction, setCountAction] = useState(0)
   const [isAutoMode, setIsAutoMode] = useState(false)
@@ -43,7 +59,7 @@ const BashScriptGenerator = () => {
   const [showFormattedPrompt, setShowFormattedPrompt] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
 
-  const runAIRef = useRef((directQuery?: string) => {})
+  const runAIRef = useRef((observation?: string) => {})
 
   // Diagram
   const [diagramState, setDiagramState] = useState('')
@@ -51,26 +67,24 @@ const BashScriptGenerator = () => {
   const [showStickyActionButton, setShowStickyActionButton] = useState(false)
   const [lastScrollY, setLastScrollY] = useState(0)
 
-  runAIRef.current = async (directQuery?: string) => {
-    let chooseQuery = directQuery ? directQuery : tempPrompt
-    console.log({ isStopped, countAction })
-
-    if (isStopped) {
-      setIsLoading(false)
-      return
+  runAIRef.current = async (observation?: string) => {
+    let newMessages = [...messages]
+    let contentInput = ''
+    if (messages.length === 1) {
+      contentInput = `Instruction: ${query}`
+    } else if (messages.length > 1 && observation) {
+      contentInput = `Observation: ${observation}`
     }
-
-    if (query.length === 0) {
-      setOutput('Please enter a query')
-      return
+    if (contentInput !== '') {
+      newMessages = [
+        ...messages,
+        {
+          role: 'user',
+          content: contentInput,
+        },
+      ]
+      setMessages(newMessages)
     }
-    if (tempPrompt.includes(TaskStatus.Done)) {
-      setOutput(TaskStatus.Done)
-      setIsLoading(false)
-      return
-    }
-
-    console.log({ chooseQuery })
     setCountAction((prev) => prev + 1)
     setDiagramState(DiagramState.aiRunning)
     setIsLoading(true)
@@ -79,43 +93,49 @@ const BashScriptGenerator = () => {
       const response = await fetch('/api/runOpenAI', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: chooseQuery }),
+        body: JSON.stringify({
+          messages: newMessages,
+        }),
       })
-      const data = await response.json()
-      if (
-        data.output
-          .toLowerCase()
-          .includes(`thought: ${TaskStatus.Done.toLowerCase()}`) ||
-        data.output.toLowerCase().includes(TaskStatus.Done.toLowerCase()) ||
-        data.output === ''
-      ) {
-        console.log(TaskStatus.Done)
-        setOutput(TaskStatus.Done)
-        setTempPrompt(`${chooseQuery}\n${data.output}`)
-        //delay 1s
-        await new Promise((resolve) => setTimeout(resolve, 100))
-        savePromptToFile()
+      // ExecutionSchemaType
+      const {
+        output,
+        messages: historyMessages,
+        completion,
+      } = await response.json()
+      const { Thought, Action, ActionType, ChildProcess, Status } =
+        ExecutionSchema.parse(output)
+      console.log({ Thought, Action, ActionType, Status })
+      const assistantMessage: ChatCompletionMessageParam = {
+        role: 'assistant',
+        content: JSON.stringify(ExecutionSchema.parse(output)),
+      }
+      setMessages((prev) => [...prev, assistantMessage])
+      if (Status !== 'In Progress') {
+        console.log(Status)
+        setOutput((prev) => [...prev, Status])
+
+        savePromptToFile(assistantMessage)
         setIsLoading(false)
         return
       }
-      setTempPrompt(`${chooseQuery}${data.output}`)
-      setOpenAILog(data.output)
-      const bashScript = extractBashScript(data.output)
+      setOpenAILog((prev) => [...prev, ExecutionSchema.parse(output)])
+      const bashScript = Action
       if (bashScript.length === 0) {
-        setOutput('No bash script found')
+        setOutput((prev) => [...prev, 'No bash script found'])
         return
       } else {
-        setOutput('Bash script generated')
+        setOutput((prev) => [...prev, 'Bash script generated'])
         setBashScript(bashScript)
-
+        setChildProcessMode(ChildProcess)
         // Auto-run bash script
         if (isAutoMode) {
-          setOutput('Run bash script')
-          runBashScript(bashScript, `${chooseQuery}${data.output}`)
+          setOutput((prev) => [...prev, 'Run bash script'])
+          runBashScript(bashScript, ChildProcess)
         }
       }
     } catch (error: any) {
-      setOutput('Error openai: ' + error.message)
+      setOutput((prev) => [...prev, 'Error openai: ' + error.message])
     } finally {
       setDiagramState(DiagramState.aiProcessed)
       if (!isAutoMode) {
@@ -145,7 +165,7 @@ const BashScriptGenerator = () => {
   }, [lastScrollY])
 
   const runBashScript = useCallback(
-    async (directBashScript?: string, message?: string) => {
+    async (directBashScript?: string, mode?: string) => {
       if (isStopped) {
         setIsLoading(false)
         return
@@ -153,7 +173,12 @@ const BashScriptGenerator = () => {
 
       console.log({ directBashScript, bashScript })
       let chosenBashScript = directBashScript ? directBashScript : bashScript
-
+      let chosenChildProcessMode = mode ? mode : ChildProcessMode
+      setOutput((prev) => [...prev, `Chosen bash script: ${chosenBashScript}`])
+      setOutput((prev) => [
+        ...prev,
+        `Chosen ChildProcessMode: ${chosenChildProcessMode}`,
+      ])
       setDiagramState(DiagramState.bashScriptRunning)
       setIsLoading(true)
 
@@ -163,35 +188,46 @@ const BashScriptGenerator = () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             script: chosenBashScript,
+            mode: chosenChildProcessMode,
           }),
         })
         const data = await response.json()
 
         console.log({ data })
 
-        setBashLog((prev) => `${prev}${chosenBashScript}\n\n`)
-        setOutput((prev) => `${prev}${data.output}\n`)
+        setBashLog((prev) => [...prev, chosenBashScript])
+        setOutput((prev) => [...prev, data.output])
 
         let observation =
-          data.output.length > 0
-            ? `\nObservation: ${data.output?.trim()}`
-            : '\nObservation: No output'
-
+          data.output.length > 0 ? data.output?.trim() : 'No output'
         // Auto run next prompt
-        setOutput('AutoRun: ' + isAutoMode)
+        // setOutput('AutoRun: ' + isAutoMode)
         if (isAutoMode) {
-          setOutput('AutoRun: Run AI')
-          runAIRef.current(`${message}${observation}\n`)
-          console.log(`openai got: ${message}${observation}\n`)
+          setOutput((prev) => [...prev, 'AutoRun: Run AI'])
+          runAIRef.current(observation)
+          console.log(`openai got: ${observation}\n`)
+        } else {
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: 'user',
+              content: `Observation: ${observation}`,
+            },
+          ])
         }
-
-        setTempPrompt((prev) => `${prev}${observation}\n`)
+        //TODO: else if not isAutoMode, then set the observation to the messages
       } catch (error: any) {
-        setOutput('Error executing script: ' + error.message)
-        setTempPrompt(
-          (prev) =>
-            `${prev}\nObservation: Error executing script: ${error.message}\n`
-        )
+        setOutput((prev) => [
+          ...prev,
+          'Error executing script: ' + error.message,
+        ])
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'user',
+            content: `Observation: Error executing script: ${error.message}`,
+          },
+        ])
       } finally {
         setDiagramState(DiagramState.bashScriptProcessed)
         if (!isAutoMode) {
@@ -199,20 +235,22 @@ const BashScriptGenerator = () => {
         }
       }
     },
-    [isStopped, bashScript, isAutoMode]
+    [isStopped, bashScript, ChildProcessMode, isAutoMode]
   )
 
-  const savePromptToFile = async () => {
+  const savePromptToFile = async (lastMessage?: ChatCompletionMessageParam) => {
     try {
       const response = await fetch('/api/savePrompt', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: tempPrompt }),
+        body: JSON.stringify({
+          messages: lastMessage ? [...messages, lastMessage] : messages,
+        }),
       })
       const data = await response.json()
-      setOutput(data.output)
+      setOutput((prev) => [...prev, data.output])
     } catch (error: any) {
-      setOutput('Error saving prompt: ' + error.message)
+      setOutput((prev) => [...prev, 'Error saving prompt: ' + error.message])
     }
   }
 
@@ -230,19 +268,25 @@ const BashScriptGenerator = () => {
 
   const renderActionButton = () => {
     const buttons = [
-      <Button
-        id="run-ai-button"
-        key="run-ai-button"
-        onClick={() => {
-          setIsStopped(false)
-          runAIRef.current()
-        }}
-        className={`w-full ${isAutoMode ? `bg-green-500` : `bg-blue-500`}`}
-        disabled={isLoading}
-      >
-        Run AI {isAutoMode ? '(Auto)' : ''}
-        {isLoading && <Spinner className="flex ml-1" />}
-      </Button>,
+      messages[messages.length - 1].role !== 'assistant' ? (
+        <Button
+          id="run-ai-button"
+          key="run-ai-button"
+          onClick={() => {
+            setIsStopped(false)
+            runAIRef.current()
+          }}
+          className={`w-full ${isAutoMode ? `bg-green-500` : `bg-blue-500`}`}
+          disabled={
+            isLoading || messages[messages.length - 1].role === 'assistant'
+          }
+        >
+          Run AI {isAutoMode ? '(Auto)' : ''}
+          {isLoading && <Spinner className="flex ml-1" />}
+        </Button>
+      ) : (
+        <></>
+      ),
     ]
 
     // Resume/Stop button
@@ -261,17 +305,25 @@ const BashScriptGenerator = () => {
     // Run bash script button
     if (!isAutoMode) {
       buttons.push(
-        <Button
-          key="run-bash-script-button"
-          onClick={() =>
-            runBashScript(extractBashScript(openAILog), tempPrompt)
-          }
-          className="w-full bg-blue-800"
-          disabled={isLoading}
-        >
-          Run Bash Script
-          {isLoading && <Spinner className="flex ml-1" />}
-        </Button>
+        messages[messages.length - 1].role !== 'user' ? (
+          <Button
+            key="run-bash-script-button"
+            onClick={async () => {
+              if (openAILog && openAILog.length > 0) {
+                await runBashScript(openAILog[openAILog.length - 1]?.Action)
+              }
+            }}
+            className="w-full bg-blue-800"
+            disabled={
+              isLoading || messages[messages.length - 1].role === 'user'
+            }
+          >
+            Run Bash Script
+            {isLoading && <Spinner className="flex ml-1" />}
+          </Button>
+        ) : (
+          <></>
+        )
       )
     }
 
@@ -289,7 +341,6 @@ const BashScriptGenerator = () => {
             value={query}
             onChange={(e) => {
               setQuery(e.target.value)
-              setTempPrompt(`Instruction: ${e.target.value}\n`)
             }}
             className="mb-4"
             disabled={isLoading}
@@ -299,9 +350,9 @@ const BashScriptGenerator = () => {
 
             <div className="pt-2" />
 
-            {output?.trim().length > 0 ? (
+            {output.length > 0 ? (
               <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap">
-                Status: {output}
+                Status: {output[output.length - 1]}
               </pre>
             ) : (
               <></>
@@ -335,6 +386,24 @@ const BashScriptGenerator = () => {
                 <FaInfoCircle />
               </button>
             </div>
+            <div className="pt-2">
+              <h3 className="text-xl font-semibold mb-5">
+                Example Instructions
+              </h3>
+              <ul className="flex flex-col w-full">
+                {exampleInstructions.map((instruction, index) => (
+                  <li
+                    className="mb-2 w-full cursor-pointer"
+                    key={index}
+                    onClick={() => setQuery(instruction)}
+                  >
+                    <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap text-sm">
+                      {instruction}
+                    </pre>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </Card>
         <Card className="p-4 w-full overflow-y-auto whitespace-nowrap">
@@ -343,12 +412,14 @@ const BashScriptGenerator = () => {
               {showFormattedPrompt ? `Formatted` : 'Raw'} Prompt Log
             </h3>
 
-            {tempPrompt && (
+            {messages && (
               <>
-                <button onClick={() => copyToClipboard(tempPrompt)}>
+                <button
+                  onClick={() => copyToClipboard(JSON.stringify(messages))}
+                >
                   <FaRegClipboard />
                 </button>
-                <button onClick={savePromptToFile} className="pl-1">
+                <button onClick={() => savePromptToFile()} className="pl-1">
                   <FaFileDownload />
                 </button>
               </>
@@ -364,17 +435,11 @@ const BashScriptGenerator = () => {
             )}
           </div>
           {showFormattedPrompt ? (
-            <InstructionText text={tempPrompt} />
+            <InstructionText steps={messages} />
           ) : (
-            <Textarea
-              placeholder="Temp prompt"
-              value={tempPrompt}
-              onChange={(e) => {
-                setTempPrompt(e.target.value)
-              }}
-              className="mb-2 h-full"
-              disabled={isLoading}
-            />
+            <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap text-sm">
+              {JSON.stringify(messages, null, 2)}
+            </pre>
           )}
         </Card>
 
@@ -399,24 +464,53 @@ const BashScriptGenerator = () => {
                 Generated Bash Script
               </h3>
               <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap text-sm">
-                {bashScript}
+                Script: {bashScript}
+                Mode: {ChildProcessMode}
               </pre>
 
               <h3 className="text-xl font-semibold mb-2">Output</h3>
               <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap">
-                {output?.trim()}
+                {output?.map((line, index) => {
+                  return (
+                    <div key={index} className="pb-2 mb-2">
+                      {line}
+                      <hr className="border-t-4 border-blue-900 my-4" />
+                    </div>
+                  )
+                })}
               </pre>
               <h3 className="text-xl font-semibold mb-2">OpenAI Log</h3>
               <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap text-sm">
-                {openAILog}
+                {openAILog?.map((line, index) => {
+                  return (
+                    <div key={index} className="pb-2 mb-2">
+                      {JSON.stringify(line)}
+                      <hr className="border-t-4 border-blue-900 my-4" />
+                    </div>
+                  )
+                })}
               </pre>
               <h3 className="text-xl font-semibold mb-2">Prompt Log</h3>
               <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap text-sm">
-                {tempPrompt}
+                {messages.slice(1).map((line, index) => {
+                  return (
+                    <div key={index} className="pb-2 mb-2">
+                      {line.role}:{JSON.stringify(line.content)}
+                      <hr className="border-t-4 border-blue-900 my-4" />
+                    </div>
+                  )
+                })}
               </pre>
               <h3 className="text-xl font-semibold mb-2">Bash Log</h3>
               <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap">
-                {bashLog}
+                {bashLog.map((line, index) => {
+                  return (
+                    <div key={index} className="pb-2 mb-2">
+                      {line}
+                      <hr className="border-t-4 border-blue-900 my-4" />
+                    </div>
+                  )
+                })}
               </pre>
             </>
           )}

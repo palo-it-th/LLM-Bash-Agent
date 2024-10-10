@@ -24,18 +24,32 @@ const NavBar = () => {
             <div className="hidden sm:ml-6 sm:block">
               <div className="flex space-x-4">
                 <Link
-                  href="/one-shot"
-                  className={`px-3 py-2 font-medium ${pathName === '/' || pathName === '/one-shot' ? 'text-[#F57D2B]' : null}  hover:text-green-500`}
-                  aria-current="page"
-                >
-                  One Shot
-                </Link>
-                <Link
                   href="/react"
-                  className={`px-3 py-2 font-medium ${pathName === '/react' ? 'text-[#F57D2B]' : null}  hover:text-green-500`}
+                  className={`px-3 py-2 font-medium ${pathName === '/' ? 'text-[#F57D2B]' : null}  hover:text-green-500`}
                   aria-current="page"
                 >
                   ReAct
+                </Link>
+                <Link
+                  href="/chat"
+                  className={`px-3 py-2 font-medium ${pathName === '/chat' ? 'text-[#F57D2B]' : null}  hover:text-green-500`}
+                  aria-current="page"
+                >
+                  Chat
+                </Link>
+                <Link
+                  href="/chatWithTools"
+                  className={`px-3 py-2 font-medium ${pathName === '/chatWithTools' ? 'text-[#F57D2B]' : null}  hover:text-green-500`}
+                  aria-current="page"
+                >
+                  Chat with Tools
+                </Link>
+                <Link
+                  href="/ragOne"
+                  className={`px-3 py-2 font-medium ${pathName === '/ragOne' ? 'text-[#F57D2B]' : null}  hover:text-green-500`}
+                  aria-current="page"
+                >
+                  RAG One
                 </Link>
               </div>
             </div>

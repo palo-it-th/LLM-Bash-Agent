@@ -1,15 +1,30 @@
 import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
-import Groq from 'groq-sdk'
-import { systemPrompt } from './systemPrompt'
 
-const openai = new OpenAI()
-const groq = new Groq()
+import { systemPromptJSON } from './systemPromptJSON'
+import { zodResponseFormat } from 'openai/helpers/zod'
+import { z } from 'zod'
+import { ChatCompletionMessageParam } from 'openai/resources/index.js'
+import { ModelName } from '@/lib/utils'
 
-enum ModelName {
-  GPT4O = 'gpt-4o',
-  Llama3 = 'llama3-70b-8192',
-}
+// const groq = new Groq()
+export const ExecutionSchema = z.object({
+  Thought: z.string(),
+  ActionType: z.enum(['Execute', 'Validate']),
+  Action: z.string(),
+  Status: z.enum(['Success', 'Stopped', 'Failed', 'In Progress']),
+  ChildProcess: z.enum(['spawn', 'exec']),
+})
+
+export type ExecutionSchemaType = z.infer<typeof ExecutionSchema>
+
+export const ExecutionWithObsSchema = z.object({
+  Thought: z.string(),
+  ActionType: z.string(),
+  Action: z.string(),
+  Observation: z.string(),
+})
+
 //create_react_chatbot_1721146210338.txt
 async function readFileFromDataFolder(fileName: string) {
   const data = await fetch(`data/${fileName}`)
@@ -17,22 +32,14 @@ async function readFileFromDataFolder(fileName: string) {
 }
 
 export async function POST(request: Request) {
-  const { query } = await request.json()
+  const { messages }: { messages: ChatCompletionMessageParam[] } =
+    await request.json()
+  console.log(messages)
+  const openai = new OpenAI()
   let llm = openai
-  // let llm = groq
-  console.log({ query })
   try {
-    const completion = await llm.chat.completions.create({
-      messages: [
-        {
-          role: 'system',
-          content: systemPrompt,
-        },
-        {
-          role: 'user',
-          content: query,
-        },
-      ],
+    const completion = await llm.beta.chat.completions.parse({
+      messages,
       // model: ModelName.Llama3,
       model: ModelName.GPT4O,
       temperature: 0.2,
@@ -40,12 +47,17 @@ export async function POST(request: Request) {
       top_p: 0.2,
       frequency_penalty: 0,
       presence_penalty: 0,
-      stop: ['Observation'],
+      response_format: zodResponseFormat(ExecutionSchema, 'execution'),
     })
+    // console.dir(completion, { depth: 5 })
 
-    console.log(completion.choices[0])
-    const answer = completion.choices[0].message.content
-    return NextResponse.json({ output: answer })
+    const message = completion.choices[0]?.message
+
+    return NextResponse.json({
+      output: message?.parsed || undefined,
+      messages,
+      completion,
+    })
   } catch (error: any) {
     return NextResponse.json({ output: error.message }, { status: 500 })
   }

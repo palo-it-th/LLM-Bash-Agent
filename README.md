@@ -107,8 +107,8 @@ graph TD
 
 ## Example prompts
 
-- For example prompts, please refer to the [Readme-examples.md](Readme-examples.md) file.
-- For ReAct prompts, please refer to the [ReAct.md](ReAct.md) file.
+- For example prompts, please refer to the [examples/test.md](examples/test.md) file.
+- For ReAct prompts, please refer to the [examples/prompt.md](examples/prompt.md) file.
 
 ## TODO
 
