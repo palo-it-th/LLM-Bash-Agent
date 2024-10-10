@@ -296,22 +296,6 @@ const BashScriptGenerator = () => {
       ),
     ]
 
-    // Resume/Stop button
-    if (isAutoMode && diagramState !== '') {
-      buttons.push(
-        <Button
-          key={`stop-button`}
-          onClick={() => {
-            setIsStopped(!isStopped)
-            isStoppedRef.current = !isStoppedRef.current
-          }}
-          className={`w-full bg-red-500`}
-        >
-          {isStopped ? 'Resume' : 'Stop'}
-        </Button>
-      )
-    }
-
     // Run bash script button
     if (!isAutoMode) {
       buttons.push(
@@ -336,6 +320,23 @@ const BashScriptGenerator = () => {
         )
       )
     }
+
+    // Resume/Stop button
+    // if (isAutoMode && diagramState !== '') {
+
+    buttons.push(
+      <Button
+        key={`stop-button`}
+        onClick={() => {
+          setIsStopped(!isStopped)
+          isStoppedRef.current = !isStoppedRef.current
+        }}
+        className={`w-full bg-red-500`}
+      >
+        {isStopped ? 'Resume' : 'Stop'}
+      </Button>
+    )
+    // }
 
     return <>{buttons}</>
   }

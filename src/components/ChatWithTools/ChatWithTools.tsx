@@ -37,7 +37,8 @@ const ChatWithTools = () => {
       })
       const { message } = await response.json()
       console.log({ message })
-      setMessages((prev) => [...prev, message])
+      setMessages(message)
+      // setMessages((prev) => [...prev, message])
     } catch (error: any) {
       console.error('Error:', error.message)
     } finally {
@@ -63,9 +64,10 @@ const ChatWithTools = () => {
               key={index}
               className={`message-bubble ${message.role === 'user' ? 'human-message bg-blue-200' : 'ai-message bg-green-200'} ${message.role === 'user' ? 'ml-auto' : 'mr-auto'}`}
             >
-              <ReactMarkdown>
+              {/* <ReactMarkdown>
                 {typeof message.content === 'string' ? message.content : ''}
-              </ReactMarkdown>
+              </ReactMarkdown> */}
+              <span>{JSON.stringify(message.content)}</span>
             </div>
           ))}
         </div>
