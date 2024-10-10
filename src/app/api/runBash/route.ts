@@ -47,10 +47,10 @@ async function executeCommand(
   }
   // Handle background processes
   if (mode === 'spawn') {
-    const logStreamDir = path.resolve(dataDir, logFileName)
-    const logStream = fs.createWriteStream(logStreamDir, {
-      flags: 'a',
-    })
+    // const logStreamDir = path.resolve(dataDir, logFileName)
+    // const logStream = fs.createWriteStream(logStreamDir, {
+    //   flags: 'a',
+    // })
     // if (mode) {
     console.log('Handling background process')
     try {

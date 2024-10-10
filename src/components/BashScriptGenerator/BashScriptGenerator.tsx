@@ -52,7 +52,9 @@ const BashScriptGenerator = () => {
       content: systemPromptJSON,
     },
   ])
-  const [isStopped, setIsStopped] = useState(false) // Stop actions flag for stopping all AI and bash script actions
+  const [isStopped, setIsStopped] = useState<boolean>(false) // Stop actions flag for stopping all AI and bash script actions
+
+  const isStoppedRef = useRef<boolean>(false)
   const [countAction, setCountAction] = useState(0)
   const [isAutoMode, setIsAutoMode] = useState(false)
   const [showLog, setShowLog] = useState(true)
@@ -68,6 +70,10 @@ const BashScriptGenerator = () => {
   const [lastScrollY, setLastScrollY] = useState(0)
 
   runAIRef.current = async (observation?: string) => {
+    if (isStopped || isStoppedRef.current) {
+      setIsLoading(false)
+      return
+    }
     let newMessages = [...messages]
     let contentInput = ''
     if (messages.length === 1) {
@@ -166,7 +172,7 @@ const BashScriptGenerator = () => {
 
   const runBashScript = useCallback(
     async (directBashScript?: string, mode?: string) => {
-      if (isStopped) {
+      if (isStopped || isStoppedRef.current) {
         setIsLoading(false)
         return
       }
@@ -196,10 +202,10 @@ const BashScriptGenerator = () => {
         console.log({ data })
 
         setBashLog((prev) => [...prev, chosenBashScript])
-        setOutput((prev) => [...prev, data.output])
 
         let observation =
           data.output.length > 0 ? data.output?.trim() : 'No output'
+        setOutput((prev) => [...prev, observation])
         // Auto run next prompt
         // setOutput('AutoRun: ' + isAutoMode)
         if (isAutoMode) {
@@ -274,6 +280,7 @@ const BashScriptGenerator = () => {
           key="run-ai-button"
           onClick={() => {
             setIsStopped(false)
+            isStoppedRef.current = false
             runAIRef.current()
           }}
           className={`w-full ${isAutoMode ? `bg-green-500` : `bg-blue-500`}`}
@@ -294,10 +301,13 @@ const BashScriptGenerator = () => {
       buttons.push(
         <Button
           key={`stop-button`}
-          onClick={() => setIsStopped(true)}
+          onClick={() => {
+            setIsStopped(!isStopped)
+            isStoppedRef.current = !isStoppedRef.current
+          }}
           className={`w-full bg-red-500`}
         >
-          Stop
+          {isStopped ? 'Resume' : 'Stop'}
         </Button>
       )
     }
@@ -474,7 +484,7 @@ const BashScriptGenerator = () => {
                   return (
                     <div key={index} className="pb-2 mb-2">
                       {line}
-                      <hr className="border-t-4 border-blue-900 my-4" />
+                      <hr className="border-t-2 border-blue-900 my-4" />
                     </div>
                   )
                 })}
@@ -485,7 +495,7 @@ const BashScriptGenerator = () => {
                   return (
                     <div key={index} className="pb-2 mb-2">
                       {JSON.stringify(line)}
-                      <hr className="border-t-4 border-blue-900 my-4" />
+                      <hr className="border-t-2 border-blue-900 my-4" />
                     </div>
                   )
                 })}
@@ -496,7 +506,7 @@ const BashScriptGenerator = () => {
                   return (
                     <div key={index} className="pb-2 mb-2">
                       {line.role}:{JSON.stringify(line.content)}
-                      <hr className="border-t-4 border-blue-900 my-4" />
+                      <hr className="border-t-2 border-blue-900 my-4" />
                     </div>
                   )
                 })}
@@ -507,7 +517,7 @@ const BashScriptGenerator = () => {
                   return (
                     <div key={index} className="pb-2 mb-2">
                       {line}
-                      <hr className="border-t-4 border-blue-900 my-4" />
+                      <hr className="border-t-2 border-blue-900 my-4" />
                     </div>
                   )
                 })}
