@@ -11,14 +11,23 @@ import { ExecutionSchemaType } from '../runOpenAI/route'
 const execAsync = promisify(exec)
 
 export async function POST(request: Request) {
-  const { script, mode } = await request.json()
+  const { script, mode, workingDirectory } = await request.json()
 
   try {
-    const workingDirectory = `${getHomeDirectory()}/workspace_react`
+    // const fullWorkingDirectory = `${getHomeDirectory()}/${workingDirectory}`
+    const fullWorkingDirectory = path.resolve(
+      getHomeDirectory(),
+      workingDirectory
+    )
+    if (!fs.existsSync(fullWorkingDirectory)) {
+      console.log('Creating directory:', fullWorkingDirectory)
+      fs.mkdirSync(fullWorkingDirectory)
+    }
+    console.log({ fullWorkingDirectory })
     console.log(`Start runBash Command: ${script}`)
     console.log(`Start runBash Mode: ${mode}`)
-    console.log(`Start runBash Directory: ${workingDirectory}`)
-    const output = await executeCommand(script, mode, workingDirectory)
+    console.log(`Start runBash Directory: ${fullWorkingDirectory}`)
+    const output = await executeCommand(script, mode, fullWorkingDirectory)
     return NextResponse.json({ output })
   } catch (error: any) {
     return NextResponse.json({ output: error.message }, { status: 500 })
@@ -30,28 +39,18 @@ async function executeCommand(
   mode: string,
   workingDirectory: string
 ): Promise<string | undefined> {
-  const logFileName = `${generateShortUUID()}-executeCommand.log`
+  // Create a directory to store logs getHome directory and replace with logs
+  // replace work directory with "_default????"
   const dataDir = path.resolve(process.cwd(), 'logs')
   if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir)
   }
-  // console.log(
-  //   `Child Process Stream Logging output to ${path.resolve(
-  //     dataDir,
-  //     logFileName
-  //   )}`
-  // )
 
   if (!workingDirectory) {
     throw new Error('Working directory is required')
   }
   // Handle background processes
   if (mode === 'spawn') {
-    // const logStreamDir = path.resolve(dataDir, logFileName)
-    // const logStream = fs.createWriteStream(logStreamDir, {
-    //   flags: 'a',
-    // })
-    // if (mode) {
     console.log('Handling background process')
     try {
       const childProcess = spawn(command.trim(), [], {

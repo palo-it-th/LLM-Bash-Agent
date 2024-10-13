@@ -51,6 +51,13 @@ const NavBar = () => {
                 >
                   RAG One
                 </Link>
+                <Link
+                  href="/ragQdrant"
+                  className={`px-3 py-2 font-medium ${pathName === '/ragQdrant' ? 'text-[#F57D2B]' : null}  hover:text-green-500`}
+                  aria-current="page"
+                >
+                  RAG Qdrant
+                </Link>
               </div>
             </div>
           </div>

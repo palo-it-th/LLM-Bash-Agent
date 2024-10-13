@@ -4,6 +4,7 @@ import { useState } from 'react'
 
 import { Card } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
+import { Input } from '@/components/ui/input'
 import './chat.css'
 import { ChatCompletionMessageParam } from 'openai/resources/index.mjs'
 import OpenAI from 'openai'
@@ -120,11 +121,12 @@ const RAGOne = () => {
 
   return (
     <div className="flex flex-col">
-      <div className="p-4 flex flex-row">
+      <div className="p-4 flex flex-row content-center items-center">
         <h3 className="text-sm font-bold mb-2 mr-2">TopK</h3>
-        <Textarea
+        <Input
           placeholder="Enter your top K"
           value={topK}
+          type="number"
           onChange={(e) => {
             setTopK(Number(e.target.value.trim()))
           }}
@@ -132,13 +134,41 @@ const RAGOne = () => {
           disabled={isLoading}
         />
         <h3 className="text-sm font-bold mb-2 mr-2">Delimiter</h3>
-        <Textarea
+        <Input
           placeholder="Enter your delimiter"
           value={chunksOptions.delimiters}
           onChange={(e) => {
             setChunksOptions({
               ...chunksOptions,
               delimiters: e.target.value,
+            })
+          }}
+          className="mb-2 mr-2"
+          disabled={isLoading}
+        />
+        <h3 className="text-sm font-bold mb-2 mr-2">Min Length</h3>
+        <Input
+          placeholder="Enter your delimiter"
+          value={chunksOptions.minLength}
+          type="number"
+          onChange={(e) => {
+            setChunksOptions({
+              ...chunksOptions,
+              minLength: Number(e.target.value),
+            })
+          }}
+          className="mb-2 mr-2"
+          disabled={isLoading}
+        />
+        <h3 className="text-sm font-bold mb-2 mr-2">Max Length</h3>
+        <Input
+          placeholder="Enter your delimiter"
+          value={chunksOptions.maxLength}
+          type="number"
+          onChange={(e) => {
+            setChunksOptions({
+              ...chunksOptions,
+              maxLength: Number(e.target.value),
             })
           }}
           className="mb-2 mr-2"

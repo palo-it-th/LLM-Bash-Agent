@@ -8,11 +8,28 @@ import { Spinner } from '../ui/spinner'
 import './chat.css'
 import { ChatCompletionMessageParam } from 'openai/resources/index.mjs'
 import React from 'react'
-
+import {
+  FaEye,
+  FaEyeSlash,
+  FaFileDownload,
+  FaInfoCircle,
+  FaMagic,
+  FaRegClipboard,
+} from 'react-icons/fa'
+import ReactJson from 'react-json-view'
 const ChatWithTools = () => {
-  const [messages, setMessages] = useState<ChatCompletionMessageParam[]>([])
-  const [input, setInput] = useState<string>('')
+  const [messages, setMessages] = useState<ChatCompletionMessageParam[]>([
+    {
+      role: 'system',
+      content:
+        'You must use our book database, which you can access using functions to answer the following questions.',
+    },
+  ])
+  const [input, setInput] = useState<string>(
+    'I really enjoyed reading To Kill a Mockingbird, could you recommend me a book that is similar and tell me why?'
+  )
   const [isLoading, setIsLoading] = useState(false)
+  const [showFormattedPrompt, setShowFormattedPrompt] = useState(true)
 
   const handleSendMessage = async () => {
     if (!input.trim()) return
@@ -57,19 +74,44 @@ const ChatWithTools = () => {
     <div className="">
       <div className="">
         {/* Chat history */}
-
+        <div className="p-4 flex flex-row">
+          <h1 className="text-2xl font-bold">Chat with Tools</h1>
+          {showFormattedPrompt ? (
+            <button onClick={() => setShowFormattedPrompt(false)}>
+              <FaMagic className="m-1" />
+            </button>
+          ) : (
+            <button onClick={() => setShowFormattedPrompt(true)}>
+              <FaMagic className="m-1" />
+            </button>
+          )}
+        </div>
         <div className="flex flex-col p-4 m-4 max-h-[64vh] h-[64vh] overflow-auto mb-40 space-y-2 p-4 border-2 border-gray-300 rounded-lg">
-          {messages.map((message, index) => (
-            <div
-              key={index}
-              className={`message-bubble ${message.role === 'user' ? 'human-message bg-blue-200' : 'ai-message bg-green-200'} ${message.role === 'user' ? 'ml-auto' : 'mr-auto'}`}
-            >
-              {/* <ReactMarkdown>
-                {typeof message.content === 'string' ? message.content : ''}
-              </ReactMarkdown> */}
-              <span>{JSON.stringify(message.content)}</span>
-            </div>
-          ))}
+          {showFormattedPrompt ? (
+            messages?.map((message, index) => (
+              <div
+                key={index}
+                className={`message-bubble ${message.role === 'user' ? 'human-message bg-blue-200' : 'ai-message bg-green-200'} ${message.role === 'user' ? 'ml-auto' : 'mr-auto'}`}
+              >
+                {message.content ? (
+                  <span>
+                    {message.role}:{JSON.stringify(message.content)}
+                  </span>
+                ) : (
+                  <></>
+                )}
+                {message.role === 'assistant' && message.tool_calls ? (
+                  <span>
+                    {message.role}:{JSON.stringify(message.tool_calls)}
+                  </span>
+                ) : (
+                  <> </>
+                )}
+              </div>
+            ))
+          ) : (
+            <ReactJson src={messages} theme="ocean" />
+          )}
         </div>
 
         {/* Input and Send Button */}

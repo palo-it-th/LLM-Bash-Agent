@@ -10,11 +10,21 @@ https://github.com/user-attachments/assets/cd550321-9582-47b0-832b-59becd1d8054
 
 ## Getting Started
 
-Set up Key:
+Set up Key Globally:
 
 - In your `~/.bash_profile` or other type of shell profile
 - OpenAI: Add `export OPENAI_API_KEY='YOUR_KEY'`
 - Groq: Add `export GROQ_API_KEY='YOUR_KEY'`
+
+Setup the `.env` file:
+
+- Create a `.env` file in the root directory
+- Add the following:
+
+```bash
+OPENAI_API_KEY=YOUR_KEY
+GROQ_API_KEY=YOUR_KEY
+```
 
 Install:
 
@@ -37,6 +47,17 @@ bun dev
 ```
 
 Open [http://localhost:3201](http://localhost:3201) with your browser to see the result.
+
+## Setup Vector Database
+
+[Qdrant](https://qdrant.tech/documentation/quickstart/)
+
+```bash
+docker pull qdrant/qdrant
+docker run -p 6333:6333 -p 6334:6334 \
+    -v $(pwd)/qdrant_storage:/qdrant/storage:z \
+    qdrant/qdrant
+```
 
 ## Diagrams
 

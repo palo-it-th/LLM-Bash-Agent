@@ -98,7 +98,8 @@ export async function POST(request: Request) {
     const openai = new OpenAI()
     const runner = openai.beta.chat.completions
       .runTools({
-        model: 'gpt-4-1106-preview',
+        model: ModelName.GPT4O,
+        tool_choice: 'auto',
         stream: true,
         tools: [
           zodFunction({
@@ -120,18 +121,7 @@ export async function POST(request: Request) {
               "Get returns a book's detailed information based on the id of the book. Note that this does not accept names, and only IDs, which you can get by using search.",
           }),
         ],
-        messages: [
-          {
-            role: 'system',
-            content:
-              'Please use our book database, which you can access using functions to answer the following questions.',
-          },
-          {
-            role: 'user',
-            content:
-              'I really enjoyed reading To Kill a Mockingbird, could you recommend me a book that is similar and tell me why?',
-          },
-        ],
+        messages,
       })
       .on('message', (msg) => console.log('msg', msg))
       .on('functionCall', (functionCall) =>
@@ -152,6 +142,7 @@ export async function POST(request: Request) {
     console.dir(result, { depth: null })
     return NextResponse.json({ message: runner.messages })
   } catch (error: any) {
+    console.error(error)
     return NextResponse.json({ output: error.message }, { status: 500 })
   }
 }

@@ -1,10 +1,11 @@
 'use client'
+import React from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import InstructionText from './InstructionText'
-import { extractBashScript } from './utils'
+import ReactJson from 'react-json-view'
 
 import MermaidDiagrams from '@/components/MermaidDiagrams/MermaidDiagrams'
 import { Spinner } from '@/components/ui/spinner'
@@ -20,17 +21,13 @@ import {
 import { ExecutionSchema, ExecutionSchemaType } from '@/app/api/runOpenAI/route'
 import { ChatCompletionMessageParam } from 'openai/resources/index.mjs'
 import { systemPromptJSON } from '@/app/api/runOpenAI/systemPromptJSON'
-import React from 'react'
+import { Input } from '../ui/input'
 
 const DiagramState = {
   aiRunning: `${coreFunctionMermaid}\nclass F yellow`,
   aiProcessed: `${coreFunctionMermaid}\nclass F green`,
   bashScriptRunning: `${coreFunctionMermaid}\nclass K yellow`,
   bashScriptProcessed: `${coreFunctionMermaid}\nclass K green`,
-}
-
-enum TaskStatus {
-  Done = 'Task is done',
 }
 
 const BashScriptGenerator = () => {
@@ -57,9 +54,11 @@ const BashScriptGenerator = () => {
   const isStoppedRef = useRef<boolean>(false)
   const [countAction, setCountAction] = useState(0)
   const [isAutoMode, setIsAutoMode] = useState(false)
-  const [showLog, setShowLog] = useState(true)
+  const [showLog, setShowLog] = useState(false)
   const [showFormattedPrompt, setShowFormattedPrompt] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
+  const [workingDirectory, setWorkingDirectory] =
+    useState<string>('workspace_react')
 
   const runAIRef = useRef((observation?: string) => {})
 
@@ -119,7 +118,10 @@ const BashScriptGenerator = () => {
       setMessages((prev) => [...prev, assistantMessage])
       if (Status !== 'In Progress') {
         console.log(Status)
-        setOutput((prev) => [...prev, Status])
+        setOutput((prev) => [
+          ...prev,
+          `OpenAI Output Extracted Status: ${Status}`,
+        ])
 
         savePromptToFile(assistantMessage)
         setIsLoading(false)
@@ -131,12 +133,18 @@ const BashScriptGenerator = () => {
         setOutput((prev) => [...prev, 'No bash script found'])
         return
       } else {
-        setOutput((prev) => [...prev, 'Bash script generated'])
+        setOutput((prev) => [
+          ...prev,
+          `Bash script generated ${ChildProcess}=>${bashScript}`,
+        ])
         setBashScript(bashScript)
         setChildProcessMode(ChildProcess)
         // Auto-run bash script
         if (isAutoMode) {
-          setOutput((prev) => [...prev, 'Run bash script'])
+          setOutput((prev) => [
+            ...prev,
+            ` runAIRef=>Run bash script AutoMode: ${isAutoMode} round ${countAction}`,
+          ])
           runBashScript(bashScript, ChildProcess)
         }
       }
@@ -195,6 +203,7 @@ const BashScriptGenerator = () => {
           body: JSON.stringify({
             script: chosenBashScript,
             mode: chosenChildProcessMode,
+            workingDirectory,
           }),
         })
         const data = await response.json()
@@ -205,11 +214,13 @@ const BashScriptGenerator = () => {
 
         let observation =
           data.output.length > 0 ? data.output?.trim() : 'No output'
-        setOutput((prev) => [...prev, observation])
+        setOutput((prev) => [...prev, `Observation: ${observation}`])
         // Auto run next prompt
-        // setOutput('AutoRun: ' + isAutoMode)
         if (isAutoMode) {
-          setOutput((prev) => [...prev, 'AutoRun: Run AI'])
+          setOutput((prev) => [
+            ...prev,
+            `runBashScript to runAIRef => AutoMode: ${isAutoMode} round ${countAction}`,
+          ])
           runAIRef.current(observation)
           console.log(`openai got: ${observation}\n`)
         } else {
@@ -328,6 +339,14 @@ const BashScriptGenerator = () => {
       <Button
         key={`stop-button`}
         onClick={() => {
+          if (isStoppedRef.current === true) {
+            // the text is "Resume" so we should run the AI
+            runAIRef.current()
+          } else {
+            // the text is "Stop" so we should stop the AI
+            //should auto off?
+            setIsLoading(false)
+          }
           setIsStopped(!isStopped)
           isStoppedRef.current = !isStoppedRef.current
         }}
@@ -371,6 +390,19 @@ const BashScriptGenerator = () => {
             <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap text-sm">
               Run AI Number: {countAction}
             </pre>
+
+            <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap mb-2 mr-2 text-[9px]">
+              Working Directory $HOME/{workingDirectory}
+            </pre>
+            <Input
+              placeholder="Enter your Working Directory Name that exist at $HOME (e.g. my-project)"
+              value={workingDirectory}
+              onChange={(e) => {
+                setWorkingDirectory(e.target.value.trim())
+              }}
+              className="mb-2 mr-2 text-[9px]"
+              disabled={isLoading}
+            />
 
             {/* "Auto mode" toggle button */}
             <div className="flex">
@@ -444,38 +476,40 @@ const BashScriptGenerator = () => {
                 <FaMagic className="m-1" />
               </button>
             )}
+            <div className="flex">
+              {showLog ? (
+                <button onClick={() => setShowLog(false)}>
+                  <FaEyeSlash />
+                </button>
+              ) : (
+                <button onClick={() => setShowLog(true)}>
+                  <FaEye />
+                </button>
+              )}
+            </div>
           </div>
           {showFormattedPrompt ? (
             <InstructionText steps={messages} />
           ) : (
-            <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap text-sm">
-              {JSON.stringify(messages, null, 2)}
-            </pre>
+            // <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap text-sm">
+            //   {JSON.stringify(messages, null, 2)}
+            // </pre>
+            <ReactJson src={messages} theme="ocean" />
           )}
         </Card>
-
-        <Card
-          className={`p-4 ${showLog ? 'w-full' : 'w-1/5'} overflow-y-auto whitespace-nowrap space-y-4`}
-        >
-          <div className="flex">
-            <h2 className="text-xl font-semibold mr-2">Log</h2>
-            {showLog ? (
-              <button onClick={() => setShowLog(false)}>
-                <FaEyeSlash />
-              </button>
-            ) : (
-              <button onClick={() => setShowLog(true)}>
-                <FaEye />
-              </button>
-            )}
-          </div>
-          {showLog && (
+        {showLog && (
+          <Card
+            className={`p-4 ${showLog ? 'w-full' : 'w-1/5'} overflow-y-auto whitespace-nowrap space-y-4`}
+          >
             <>
+              <h2 className="text-xl font-semibold mr-2">Log</h2>
               <h3 className="text-xl font-semibold mb-2">
                 Generated Bash Script
               </h3>
               <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap text-sm">
                 Script: {bashScript}
+              </pre>
+              <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap text-sm">
                 Mode: {ChildProcessMode}
               </pre>
 
@@ -524,8 +558,8 @@ const BashScriptGenerator = () => {
                 })}
               </pre>
             </>
-          )}
-        </Card>
+          </Card>
+        )}
       </div>
       <MermaidDiagrams coreFunctionDiagram={diagramState} />
 
