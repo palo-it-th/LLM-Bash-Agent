@@ -133,9 +133,5 @@ graph TD
 
 ## TODO
 
-- [ ] Add a button to open log file in Bash Script Magician
-- [ ] Add streaming options for Bash Script Magician
-- [ ] Add few shot prompt
-- [ ] Change one shot page to chat
-- [ ] Add chat history for chat page
-- [ ] Render markdown in chat page
+- [ ] Add custom fix agent for [React FE task](data/success/long_fix_create_react_fe_login_page_and_started_at_port_3504_1728830237432.json)
+- [ ] Add few shot prompt for set up React Frontend [React FE task](data/success/long_fix_create_react_fe_login_page_and_started_at_port_3504_1728830237432.json)
