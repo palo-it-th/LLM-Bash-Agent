@@ -135,3 +135,6 @@ graph TD
 
 - [ ] Add custom fix agent for [React FE task](data/success/long_fix_create_react_fe_login_page_and_started_at_port_3504_1728830237432.json)
 - [ ] Add few shot prompt for set up React Frontend [React FE task](data/success/long_fix_create_react_fe_login_page_and_started_at_port_3504_1728830237432.json)
+- [ ] Edit prompt to write code first before run
+- [ ] Edit prompt to check if the code is correct before run
+- [ ] Edit prompt to check `tree`

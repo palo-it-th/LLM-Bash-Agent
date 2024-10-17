@@ -55,8 +55,9 @@ async function executeCommand(
     try {
       const childProcess = spawn(command.trim(), [], {
         cwd: workingDirectory,
-        shell: true,
-        detached: true,
+        env: { ...process.env, PORT: undefined },
+        shell: true, //shell: true is required to run shell commands
+        detached: true, //detached: true is required to run the process in the background
         stdio: ['ignore'],
       })
       childProcess.unref()
@@ -75,6 +76,7 @@ async function executeCommand(
     try {
       console.log(`Starting......Executed ${command} in ${workingDirectory}\n`)
       const { stdout, stderr } = await execAsync(command, {
+        env: { ...process.env, PORT: undefined },
         cwd: workingDirectory,
       })
 

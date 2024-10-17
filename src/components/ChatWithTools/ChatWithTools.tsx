@@ -16,7 +16,13 @@ import {
   FaMagic,
   FaRegClipboard,
 } from 'react-icons/fa'
-import ReactJson from 'react-json-view'
+import {
+  JsonView,
+  allExpanded,
+  darkStyles,
+  defaultStyles,
+} from 'react-json-view-lite'
+import 'react-json-view-lite/dist/index.css'
 const ChatWithTools = () => {
   const [messages, setMessages] = useState<ChatCompletionMessageParam[]>([
     {
@@ -110,7 +116,11 @@ const ChatWithTools = () => {
               </div>
             ))
           ) : (
-            <ReactJson src={messages} theme="ocean" />
+            <JsonView
+              data={messages}
+              shouldExpandNode={allExpanded}
+              style={darkStyles}
+            />
           )}
         </div>
 

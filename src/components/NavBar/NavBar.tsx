@@ -28,7 +28,7 @@ const NavBar = () => {
                   className={`px-3 py-2 font-medium ${pathName === '/' ? 'text-[#F57D2B]' : null}  hover:text-green-500`}
                   aria-current="page"
                 >
-                  ReAct
+                  Shell Agent
                 </Link>
                 <Link
                   href="/chat"
@@ -49,7 +49,7 @@ const NavBar = () => {
                   className={`px-3 py-2 font-medium ${pathName === '/ragOne' ? 'text-[#F57D2B]' : null}  hover:text-green-500`}
                   aria-current="page"
                 >
-                  RAG One
+                  RAG Chunking Raw Text
                 </Link>
                 <Link
                   href="/ragQdrant"

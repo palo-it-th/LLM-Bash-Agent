@@ -5,7 +5,7 @@ import path from 'path'
 import { generateShortUUID } from '@/lib/utils'
 
 export async function POST(request: Request) {
-  const { messages } = await request.json()
+  const { messages, isSuccess } = await request.json()
   // replace first "Instruction:" string and trim then take first 12 characters and replace all special string and space with underscore
   const fileName = messages[1]
     ? messages[1].content
@@ -15,7 +15,9 @@ export async function POST(request: Request) {
         .replace(/[^a-zA-Z0-9]/g, '_')
         .toLowerCase()
     : generateShortUUID()
-  const savedLocation = `./data/${fileName}_${Date.now()}.json`
+  const savedLocation = isSuccess
+    ? `./data/success/success_${fileName}_${Date.now()}.json`
+    : `./data/${fileName}_${Date.now()}.json`
 
   try {
     await saveToFile(savedLocation, JSON.stringify(messages), 'json')

@@ -5,7 +5,6 @@ import { Card } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import InstructionText from './InstructionText'
-import ReactJson from 'react-json-view'
 
 import MermaidDiagrams from '@/components/MermaidDiagrams/MermaidDiagrams'
 import { Spinner } from '@/components/ui/spinner'
@@ -22,6 +21,13 @@ import { ExecutionSchema, ExecutionSchemaType } from '@/app/api/runOpenAI/route'
 import { ChatCompletionMessageParam } from 'openai/resources/index.mjs'
 import { systemPromptJSON } from '@/app/api/runOpenAI/systemPromptJSON'
 import { Input } from '../ui/input'
+import {
+  JsonView,
+  allExpanded,
+  darkStyles,
+  defaultStyles,
+} from 'react-json-view-lite'
+import 'react-json-view-lite/dist/index.css'
 
 const DiagramState = {
   aiRunning: `${coreFunctionMermaid}\nclass F yellow`,
@@ -40,7 +46,7 @@ const BashScriptGenerator = () => {
   const [exampleInstructions, setExampleInstructions] = useState<string[]>([
     'Set up a local backend REST API for /products and return a list of 5 products.',
     'Say Hello with Current Time',
-    'Create React frontend app which is a maze game where the user can move a character around the maze using the arrow keys, include 5 mazes of varying difficulty',
+    'Create json-server that has mock claims api and show me the openapi spec',
     'Extract content from a webpage and filter out all the HTML, make it into nice looking markdown file',
   ])
   const [messages, setMessages] = useState<ChatCompletionMessageParam[]>([
@@ -123,7 +129,7 @@ const BashScriptGenerator = () => {
           `OpenAI Output Extracted Status: ${Status}`,
         ])
 
-        savePromptToFile(assistantMessage)
+        savePromptToFile(assistantMessage, Status === 'Success')
         setIsLoading(false)
         return
       }
@@ -255,13 +261,17 @@ const BashScriptGenerator = () => {
     [isStopped, bashScript, ChildProcessMode, isAutoMode]
   )
 
-  const savePromptToFile = async (lastMessage?: ChatCompletionMessageParam) => {
+  const savePromptToFile = async (
+    lastMessage?: ChatCompletionMessageParam,
+    isSuccess?: boolean
+  ) => {
     try {
       const response = await fetch('/api/savePrompt', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: lastMessage ? [...messages, lastMessage] : messages,
+          isSuccess,
         }),
       })
       const data = await response.json()
@@ -391,7 +401,7 @@ const BashScriptGenerator = () => {
               Run AI Number: {countAction}
             </pre>
 
-            <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap mb-2 mr-2 text-[9px]">
+            <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap mb-2 mr-2 text-sm">
               Working Directory $HOME/{workingDirectory}
             </pre>
             <Input
@@ -400,7 +410,7 @@ const BashScriptGenerator = () => {
               onChange={(e) => {
                 setWorkingDirectory(e.target.value.trim())
               }}
-              className="mb-2 mr-2 text-[9px]"
+              className="mb-2 mr-2 text-sm"
               disabled={isLoading}
             />
 
@@ -491,10 +501,11 @@ const BashScriptGenerator = () => {
           {showFormattedPrompt ? (
             <InstructionText steps={messages} />
           ) : (
-            // <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap text-sm">
-            //   {JSON.stringify(messages, null, 2)}
-            // </pre>
-            <ReactJson src={messages} theme="ocean" />
+            <JsonView
+              data={messages}
+              shouldExpandNode={allExpanded}
+              style={darkStyles}
+            />
           )}
         </Card>
         {showLog && (
