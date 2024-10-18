@@ -7,6 +7,11 @@ This project is used for training developer to understand the numbers of core co
 ## List of Examples
 
 - [Shell Agent](./docs/ShellAgent.md)
+  
+
+https://github.com/user-attachments/assets/1ecab839-f7cd-4ca2-9f12-cf92c7bd96c9
+
+
 - Chat
 
 https://github.com/user-attachments/assets/ab4950d1-9ad7-4f61-a79f-2fbcf72bac08
