@@ -8,9 +8,20 @@ This project is used for training developer to understand the numbers of core co
 
 - [Shell Agent](./docs/ShellAgent.md)
 - Chat
+
+https://github.com/user-attachments/assets/6fcfd0a5-3d73-4792-8efa-443de63d21d1
+
+
 - Chat with Tools
 - RAG Chunking Raw Text
+
+https://github.com/user-attachments/assets/eafb6cab-757b-4ba8-980f-3cde1ae7d269
+
+
 - RAG Qdrant
+
+https://github.com/user-attachments/assets/33da3ebe-21ed-4f98-b818-caef37109680
+
 
 ## Getting Started
 
