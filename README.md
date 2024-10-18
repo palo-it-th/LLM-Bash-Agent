@@ -9,7 +9,7 @@ This project is used for training developer to understand the numbers of core co
 - [Shell Agent](./docs/ShellAgent.md)
 - Chat
 
-https://github.com/user-attachments/assets/6fcfd0a5-3d73-4792-8efa-443de63d21d1
+https://github.com/user-attachments/assets/ab4950d1-9ad7-4f61-a79f-2fbcf72bac08
 
 
 - Chat with Tools
