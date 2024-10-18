@@ -20,12 +20,14 @@ https://github.com/user-attachments/assets/ab4950d1-9ad7-4f61-a79f-2fbcf72bac08
 - Chat with Tools
 - RAG Chunking Raw Text
 
-https://github.com/user-attachments/assets/eafb6cab-757b-4ba8-980f-3cde1ae7d269
+https://github.com/user-attachments/assets/18f7a74e-968f-44dd-a29c-c91b5ee3098c
 
 
 - RAG Qdrant
 
-https://github.com/user-attachments/assets/33da3ebe-21ed-4f98-b818-caef37109680
+https://github.com/user-attachments/assets/b9be1ad1-f23b-4f83-ae9d-16af1f6661bd
+
+
 
 
 ## Getting Started
