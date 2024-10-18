@@ -18,6 +18,10 @@ https://github.com/user-attachments/assets/ab4950d1-9ad7-4f61-a79f-2fbcf72bac08
 
 
 - Chat with Tools
+
+https://github.com/user-attachments/assets/9b3ebb4c-b231-417e-9bf7-ebfad94d7d2d
+
+
 - RAG Chunking Raw Text
 
 https://github.com/user-attachments/assets/18f7a74e-968f-44dd-a29c-c91b5ee3098c
