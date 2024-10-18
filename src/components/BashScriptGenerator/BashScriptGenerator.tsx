@@ -258,7 +258,14 @@ const BashScriptGenerator = () => {
         }
       }
     },
-    [isStopped, bashScript, ChildProcessMode, isAutoMode]
+    [
+      isStopped,
+      bashScript,
+      ChildProcessMode,
+      workingDirectory,
+      isAutoMode,
+      countAction,
+    ]
   )
 
   const savePromptToFile = async (

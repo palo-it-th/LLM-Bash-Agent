@@ -42,9 +42,9 @@ function zodFunction<T extends object>({
 const db = [
   {
     id: 'a1',
-    name: 'To Kill a Mockingbird',
-    genre: 'historical',
-    description: `Compassionate, dramatic, and deeply moving, "To Kill A Mockingbird" takes readers to the roots of human behavior - to innocence and experience, kindness and cruelty, love and hatred, humor and pathos. Now with over 18 million copies in print and translated into forty languages, this regional story by a young Alabama woman claims universal appeal. Harper Lee always considered her book to be a simple love story. Today it is regarded as a masterpiece of American literature.`,
+    name: 'NIRAS PASSO - LAW OF Human nature',
+    genre: 'mystery',
+    description: `In NIRAS PASSO - LAW OF Human Nature, a mysterious web of intrigue and human psychology unfolds. Set against a backdrop of secrets, betrayals, and hidden motives, the story follows Niras Passo, a brilliant yet enigmatic detective, as he navigates the complexities of human nature to solve a case that defies logic. Each step brings him closer to uncovering a dark truth, but the more he learns, the more he realizes that the true enemy may lie within. This gripping mystery takes readers on a psychological journey where every character's nature is questioned, and nothing is as it seems.`,
   },
   {
     id: 'a2',
@@ -58,6 +58,14 @@ const db = [
     genre: 'historical',
     description: `For years, rumors of the “Marsh Girl” haunted Barkley Cove, a quiet fishing village. Kya Clark is barefoot and wild; unfit for polite society. So in late 1969, when the popular Chase Andrews is found dead, locals immediately suspect her.
 But Kya is not what they say. A born naturalist with just one day of school, she takes life's lessons from the land, learning the real ways of the world from the dishonest signals of fireflies. But while she has the skills to live in solitude forever, the time comes when she yearns to be touched and loved. Drawn to two young men from town, who are each intrigued by her wild beauty, Kya opens herself to a new and startling world—until the unthinkable happens.`,
+  },
+  {
+    id: 'a4',
+    name: 'OSWALD - The Echo of Vanishing Shadows',
+    genre: 'mystery',
+    description: `When a renowned anthropologist, Dr. Elias Oswald Wolfe, mysteriously disappears during a research trip to a forgotten island, the world assumes it's just another tragic accident. But when his estranged daughter, Mia Wolfe, receives a cryptic letter postmarked after his disappearance, she is thrust into a dangerous investigation that pulls her deeper into her father’s secretive world.
+Teaming up with a jaded former detective, Mia uncovers a series of strange symbols, ancient myths, and whispers of a hidden society. The deeper they dig, the more they realize they are being watched—and hunted. As Mia unravels the truth, she must confront not only the shadowy forces behind her father’s fate but also the dark secrets of her own past.
+In OSWALD - The Echo of Vanishing Shadows, nothing is what it seems, and the truth lies in a place where reality bends, and the shadows whisper untold stories.`,
   },
 ]
 // Define your functions, alongside zod schemas.
@@ -99,7 +107,6 @@ export async function POST(request: Request) {
     const runner = openai.beta.chat.completions
       .runTools({
         model: ModelName.GPT4O,
-        tool_choice: 'auto',
         stream: true,
         tools: [
           zodFunction({

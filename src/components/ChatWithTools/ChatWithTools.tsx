@@ -32,7 +32,7 @@ const ChatWithTools = () => {
     },
   ])
   const [input, setInput] = useState<string>(
-    'I really enjoyed reading To Kill a Mockingbird, could you recommend me a book that is similar and tell me why?'
+    'I really enjoyed reading NIRAS PASSO - LAW OF Human nature, could you recommend me a book that is similar and tell me why?'
   )
   const [isLoading, setIsLoading] = useState(false)
   const [showFormattedPrompt, setShowFormattedPrompt] = useState(true)
@@ -92,29 +92,83 @@ const ChatWithTools = () => {
             </button>
           )}
         </div>
-        <div className="flex flex-col p-4 m-4 max-h-[64vh] h-[64vh] overflow-auto mb-40 space-y-2 p-4 border-2 border-gray-300 rounded-lg">
+        <div className="flex flex-col p-4 m-4 max-h-[54vh] h-[54vh] overflow-auto mb-40 space-y-2 p-4 border-2 border-gray-300 rounded-lg">
           {showFormattedPrompt ? (
-            messages?.map((message, index) => (
-              <div
-                key={index}
-                className={`message-bubble ${message.role === 'user' ? 'human-message bg-blue-200' : 'ai-message bg-green-200'} ${message.role === 'user' ? 'ml-auto' : 'mr-auto'}`}
-              >
-                {message.content ? (
-                  <span>
-                    {message.role}:{JSON.stringify(message.content)}
-                  </span>
-                ) : (
-                  <></>
-                )}
-                {message.role === 'assistant' && message.tool_calls ? (
-                  <span>
-                    {message.role}:{JSON.stringify(message.tool_calls)}
-                  </span>
-                ) : (
-                  <> </>
-                )}
-              </div>
-            ))
+            messages?.map((message, index) => {
+              let messageMode:
+                | 'text'
+                | 'tool'
+                | 'object'
+                | 'assistant-tool'
+                | undefined = undefined
+
+              if (
+                message.role === 'assistant' &&
+                message.tool_calls &&
+                message.tool_calls.length > 0
+              ) {
+                messageMode = 'assistant-tool'
+              } else if (message.role === 'tool' && message?.content) {
+                messageMode = 'tool'
+              } else if (typeof message.content === 'string') {
+                messageMode = 'text'
+              } else if (message?.content) {
+                messageMode = 'object'
+              }
+              return (
+                <div
+                  key={index}
+                  className={`message-bubble ${message.role === 'user' ? 'human-message bg-blue-200' : 'ai-message bg-green-200'} ${message.role === 'user' ? 'ml-auto' : 'mr-auto'}`}
+                >
+                  <h3 className="text-sm font-bold">{message.role}</h3>
+                  {messageMode === 'text' &&
+                  typeof message?.content === 'string' ? (
+                    <ReactMarkdown>{message.content}</ReactMarkdown>
+                  ) : (
+                    <></>
+                  )}
+                  {messageMode === 'object' ? (
+                    <JsonView
+                      data={message.content || {}}
+                      shouldExpandNode={allExpanded}
+                      style={darkStyles}
+                    />
+                  ) : (
+                    <></>
+                  )}
+                  {messageMode === 'assistant-tool' &&
+                  message.role === 'assistant' &&
+                  message.tool_calls &&
+                  message.tool_calls.length > 0 ? (
+                    // <span>
+                    //   {message.role}:{JSON.stringify(message.tool_calls)}
+                    // </span>
+                    <JsonView
+                      data={message.tool_calls}
+                      shouldExpandNode={allExpanded}
+                      style={darkStyles}
+                    />
+                  ) : (
+                    <> </>
+                  )}
+                  {messageMode === 'tool' && message?.content ? (
+                    <JsonView
+                      data={JSON.parse(message.content.toString())}
+                      shouldExpandNode={allExpanded}
+                      style={darkStyles}
+                    />
+                  ) : (
+                    <></>
+                  )}
+                  {/* <span>{messageMode} </span>
+                  <JsonView
+                    data={message}
+                    shouldExpandNode={allExpanded}
+                    style={darkStyles}
+                  /> */}
+                </div>
+              )
+            })
           ) : (
             <JsonView
               data={messages}
