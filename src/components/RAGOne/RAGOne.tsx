@@ -99,6 +99,7 @@ const RAGOne = () => {
   useEffect(() => {
     if (!sourceDocument && sourceDocument.length === 0) {
       setEmbeddingsSourceDocuments([])
+      setChunks([])
       return
     }
     setChunks(chunk(sourceDocument, chunksOptions))
@@ -199,7 +200,7 @@ const RAGOne = () => {
         </Card>
         <Card className="p-4 w-full overflow-y-auto">
           <h3 className="text-xl font-bold mb-4">
-            Source Document Chunk {chunks.length}
+            Source Document Chunk {chunks.length ? chunks.length : ''}
           </h3>
           {chunks.map((word, index) => (
             <div key={index}>
@@ -218,8 +219,11 @@ const RAGOne = () => {
             )}
             ...
           </span>
-          <h3 className="text-xl font-bold mb-4 mt-4">
-            Source Document Embedding {embeddingsSourceDocuments?.length}
+          <h3 className="text-xl font-bold mb-4 mt-4 whitespace-pre-wrap">
+            Source Document Embedding{' '}
+            {embeddingsSourceDocuments?.length > 0
+              ? embeddingsSourceDocuments.length
+              : ''}
           </h3>
           {embeddingsSourceDocuments?.map((embedding, index) => (
             <div key={index}>
